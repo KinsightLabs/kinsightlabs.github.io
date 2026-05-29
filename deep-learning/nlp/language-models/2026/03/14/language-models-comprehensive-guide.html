@@ -107,7 +107,7 @@
         </span>
         
         
-        <span class="reading-time">21 min read</span>
+        <span class="reading-time">29 min read</span>
       </div>
     </header>
 
@@ -131,65 +131,77 @@
       <li><a href="#25-limitations">2.5 Limitations</a></li>
     </ul>
   </li>
-  <li><a href="#part-3-neural-language-models">Part 3: Neural Language Models</a>
+  <li><a href="#part-3-tokenization">Part 3: Tokenization</a>
     <ul>
-      <li><a href="#31-the-neural-approach">3.1 The Neural Approach</a></li>
-      <li><a href="#32-bengios-neural-language-model-2003">3.2 Bengio’s Neural Language Model (2003)</a></li>
-      <li><a href="#33-word-embeddings">3.3 Word Embeddings</a></li>
+      <li><a href="#31-why-tokenization-matters">3.1 Why Tokenization Matters</a></li>
+      <li><a href="#32-byte-pair-encoding-bpe">3.2 Byte-Pair Encoding (BPE)</a></li>
+      <li><a href="#33-sentencepiece-and-unigram-lm">3.3 SentencePiece and Unigram LM</a></li>
     </ul>
   </li>
-  <li><a href="#part-4-recurrent-neural-network-language-models">Part 4: Recurrent Neural Network Language Models</a>
+  <li><a href="#part-4-neural-language-models">Part 4: Neural Language Models</a>
     <ul>
-      <li><a href="#41-rnn-language-models">4.1 RNN Language Models</a></li>
-      <li><a href="#42-lstm-language-models">4.2 LSTM Language Models</a></li>
+      <li><a href="#41-the-neural-approach">4.1 The Neural Approach</a></li>
+      <li><a href="#42-bengios-neural-language-model-2003">4.2 Bengio’s Neural Language Model (2003)</a></li>
+      <li><a href="#43-word-embeddings">4.3 Word Embeddings</a></li>
     </ul>
   </li>
-  <li><a href="#part-5-transformer-language-models">Part 5: Transformer Language Models</a>
+  <li><a href="#part-5-recurrent-neural-network-language-models">Part 5: Recurrent Neural Network Language Models</a>
     <ul>
-      <li><a href="#51-causal-self-attention">5.1 Causal Self-Attention</a></li>
-      <li><a href="#52-gpt-architecture">5.2 GPT Architecture</a></li>
+      <li><a href="#51-rnn-language-models">5.1 RNN Language Models</a></li>
+      <li><a href="#52-lstm-language-models">5.2 LSTM Language Models</a></li>
     </ul>
   </li>
-  <li><a href="#part-6-training-objectives">Part 6: Training Objectives</a>
+  <li><a href="#part-6-transformer-language-models">Part 6: Transformer Language Models</a>
     <ul>
-      <li><a href="#61-cross-entropy-loss">6.1 Cross-Entropy Loss</a></li>
-      <li><a href="#62-perplexity">6.2 Perplexity</a></li>
-      <li><a href="#63-teacher-forcing">6.3 Teacher Forcing</a></li>
+      <li><a href="#61-scaled-dot-product-attention">6.1 Scaled Dot-Product Attention</a></li>
+      <li><a href="#62-multi-head-attention">6.2 Multi-Head Attention</a></li>
+      <li><a href="#63-positional-encoding">6.3 Positional Encoding</a></li>
+      <li><a href="#64-gpt-architecture">6.4 GPT Architecture</a></li>
     </ul>
   </li>
-  <li><a href="#part-7-decoding-strategies">Part 7: Decoding Strategies</a>
+  <li><a href="#part-7-training-objectives">Part 7: Training Objectives</a>
     <ul>
-      <li><a href="#71-greedy-decoding">7.1 Greedy Decoding</a></li>
-      <li><a href="#72-beam-search">7.2 Beam Search</a></li>
-      <li><a href="#73-sampling-methods">7.3 Sampling Methods</a></li>
-      <li><a href="#74-temperature-scaling">7.4 Temperature Scaling</a></li>
+      <li><a href="#71-cross-entropy-loss">7.1 Cross-Entropy Loss</a></li>
+      <li><a href="#72-perplexity">7.2 Perplexity</a></li>
+      <li><a href="#73-teacher-forcing">7.3 Teacher Forcing</a></li>
     </ul>
   </li>
-  <li><a href="#part-8-pre-training-and-fine-tuning">Part 8: Pre-training and Fine-tuning</a>
+  <li><a href="#part-8-decoding-strategies">Part 8: Decoding Strategies</a>
     <ul>
-      <li><a href="#81-the-two-stage-paradigm">8.1 The Two-Stage Paradigm</a></li>
-      <li><a href="#82-fine-tuning-approaches">8.2 Fine-tuning Approaches</a></li>
-      <li><a href="#83-parameter-efficient-fine-tuning">8.3 Parameter-Efficient Fine-tuning</a></li>
+      <li><a href="#81-greedy-decoding">8.1 Greedy Decoding</a></li>
+      <li><a href="#82-beam-search">8.2 Beam Search</a></li>
+      <li><a href="#83-sampling-methods">8.3 Sampling Methods</a></li>
+      <li><a href="#84-temperature-scaling">8.4 Temperature Scaling</a></li>
     </ul>
   </li>
-  <li><a href="#part-9-scaling-laws">Part 9: Scaling Laws</a>
+  <li><a href="#part-9-pre-training-and-fine-tuning">Part 9: Pre-training and Fine-tuning</a>
     <ul>
-      <li><a href="#91-power-law-scaling">9.1 Power-Law Scaling</a></li>
-      <li><a href="#92-chinchilla-scaling-laws">9.2 Chinchilla Scaling Laws</a></li>
-      <li><a href="#93-emergent-abilities">9.3 Emergent Abilities</a></li>
+      <li><a href="#91-the-two-stage-paradigm">9.1 The Two-Stage Paradigm</a></li>
+      <li><a href="#92-fine-tuning-approaches">9.2 Fine-tuning Approaches</a></li>
+      <li><a href="#93-rlhf-and-dpo">9.3 RLHF and DPO</a></li>
+      <li><a href="#94-parameter-efficient-fine-tuning">9.4 Parameter-Efficient Fine-tuning</a></li>
     </ul>
   </li>
-  <li><a href="#part-10-modern-techniques">Part 10: Modern Techniques</a>
+  <li><a href="#part-10-scaling-laws">Part 10: Scaling Laws</a>
     <ul>
-      <li><a href="#101-efficient-attention">10.1 Efficient Attention</a></li>
-      <li><a href="#102-mixture-of-experts">10.2 Mixture of Experts</a></li>
-      <li><a href="#103-retrieval-augmented-generation">10.3 Retrieval-Augmented Generation</a></li>
+      <li><a href="#101-power-law-scaling">10.1 Power-Law Scaling</a></li>
+      <li><a href="#102-chinchilla-scaling-laws">10.2 Chinchilla Scaling Laws</a></li>
+      <li><a href="#103-emergent-abilities">10.3 Emergent Abilities</a></li>
     </ul>
   </li>
-  <li><a href="#part-11-evaluation">Part 11: Evaluation</a>
+  <li><a href="#part-11-modern-techniques">Part 11: Modern Techniques</a>
     <ul>
-      <li><a href="#111-intrinsic-metrics">11.1 Intrinsic Metrics</a></li>
-      <li><a href="#112-benchmark-suites">11.2 Benchmark Suites</a></li>
+      <li><a href="#111-efficient-attention">11.1 Efficient Attention</a></li>
+      <li><a href="#112-kv-cache-and-grouped-query-attention">11.2 KV Cache and Grouped-Query Attention</a></li>
+      <li><a href="#113-mixture-of-experts">11.3 Mixture of Experts</a></li>
+      <li><a href="#114-retrieval-augmented-generation">11.4 Retrieval-Augmented Generation</a></li>
+      <li><a href="#115-chain-of-thought-reasoning">11.5 Chain-of-Thought Reasoning</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-12-evaluation">Part 12: Evaluation</a>
+    <ul>
+      <li><a href="#121-intrinsic-metrics">12.1 Intrinsic Metrics</a></li>
+      <li><a href="#122-benchmark-suites">12.2 Benchmark Suites</a></li>
     </ul>
   </li>
   <li><a href="#summary">Summary</a></li>
@@ -200,18 +212,19 @@
 
 <h2 id="overview">Overview</h2>
 
-<p>Language models are the foundation of modern natural language processing. From autocomplete on your phone to ChatGPT, they power systems that understand and generate human language. At their core, they answer a deceptively simple question: <em>how likely is this sequence of words?</em> This single task — estimating probability distributions over text — has unlocked capabilities that would have seemed impossible a decade ago.</p>
+<p>Language models are the foundation of modern natural language processing. From autocomplete on your phone to ChatGPT, they power systems that understand and generate human language. At their core, they answer a deceptively simple question: how likely is this sequence of words? This single task — estimating probability distributions over text — has unlocked capabilities that would have seemed impossible a decade ago.</p>
 
 <p>This post traces the full arc from classical statistical methods to the massive transformer-based systems reshaping AI today:</p>
 
 <ul>
   <li><strong>Part 1</strong> establishes the mathematical definition of a language model and its historical context.</li>
-  <li><strong>Parts 2–5</strong> trace the architectural evolution: n-grams → neural LMs → RNNs → transformers.</li>
-  <li><strong>Part 6</strong> covers training objectives, including cross-entropy loss and perplexity.</li>
-  <li><strong>Part 7</strong> surveys decoding strategies: greedy, beam search, top-k, nucleus sampling.</li>
-  <li><strong>Part 8</strong> covers the pre-training and fine-tuning paradigm, including RLHF and LoRA.</li>
-  <li><strong>Part 9</strong> derives the empirical scaling laws governing modern LLMs.</li>
-  <li><strong>Parts 10–11</strong> cover modern techniques and evaluation methods.</li>
+  <li><strong>Parts 2–3</strong> cover classical n-gram models and tokenization.</li>
+  <li><strong>Parts 4–6</strong> trace the architectural evolution: neural LMs → RNNs → transformers with multi-head attention and positional encodings.</li>
+  <li><strong>Part 7</strong> covers training objectives, including cross-entropy loss and perplexity.</li>
+  <li><strong>Part 8</strong> surveys decoding strategies: greedy, beam search, top-k, nucleus sampling.</li>
+  <li><strong>Part 9</strong> covers the pre-training and fine-tuning paradigm, including RLHF, DPO, and LoRA.</li>
+  <li><strong>Part 10</strong> derives the empirical scaling laws governing modern LLMs.</li>
+  <li><strong>Parts 11–12</strong> cover modern inference techniques, reasoning, and evaluation.</li>
 </ul>
 
 <p><strong>Prerequisites:</strong> basic probability, familiarity with neural networks.</p>
@@ -290,7 +303,7 @@ P("cat" | "the") = 2/3 ≈ 0.67
 
 <p>where $V$ is the vocabulary size.</p>
 
-<p><strong>Kneser-Ney smoothing</strong> — more sophisticated: it considers how many distinct contexts a word appears in, capturing the notion that <em>Francisco</em> is common but almost always follows <em>San</em>, so its standalone continuation probability should be low:</p>
+<p><strong>Kneser-Ney smoothing</strong> is more sophisticated: it considers how many distinct contexts a word appears in, capturing the notion that <em>Francisco</em> is common but almost always follows <em>San</em>, so its standalone continuation probability should be low:</p>
 
 \[P_{KN}(w_i \mid w_{i-1}) = \frac{\max(C(w_{i-1}, w_i) - d,\; 0)}{C(w_{i-1})} + \lambda(w_{i-1})\, P_{\text{continuation}}(w_i)\]
 
@@ -311,13 +324,63 @@ P("cat" | "the") = 2/3 ≈ 0.67
 
 <hr />
 
-<h2 id="part-3-neural-language-models">Part 3: Neural Language Models</h2>
+<h2 id="part-3-tokenization">Part 3: Tokenization</h2>
 
-<h3 id="31-the-neural-approach">3.1 The Neural Approach</h3>
+<h3 id="31-why-tokenization-matters">3.1 Why Tokenization Matters</h3>
+
+<p>Before any model can process text, it must be split into discrete units — <strong>tokens</strong>. The choice of tokenization scheme has a large impact on model quality, vocabulary size, and how efficiently rare words, numbers, and foreign-language text are handled.</p>
+
+<p>A naive word-level vocabulary has two problems: out-of-vocabulary words (typos, names, neologisms) get a single <code class="language-plaintext highlighter-rouge">&lt;UNK&gt;</code> token, losing all information, and the vocabulary can balloon to millions of entries. Character-level tokenization avoids OOV but makes sequences very long. <strong>Subword tokenization</strong> is the practical middle ground used by every modern LLM.</p>
+
+<h3 id="32-byte-pair-encoding-bpe">3.2 Byte-Pair Encoding (BPE)</h3>
+
+<p>BPE (Sennrich et al., 2016) starts from a character vocabulary and iteratively merges the most frequent adjacent pair of symbols:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Initial vocabulary: {h, e, l, o, w, r, d, ...}
+
+Corpus: "hello world hello"
+Most frequent pair: ("l", "l") → merge → "ll"
+Vocabulary now includes: "ll"
+
+Next: ("h", "e") → "he"
+Next: ("he", "ll") → "hell"
+Next: ("hell", "o") → "hello"
+...
+</code></pre></div></div>
+
+<p>After $k$ merges, the vocabulary contains $k$ subword units in addition to individual characters. Common words become single tokens; rare words decompose into familiar subword pieces. GPT-2/3/4 all use BPE with vocabularies of ~50,000 tokens.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">tokenizers</span> <span class="kn">import</span> <span class="n">Tokenizer</span>
+<span class="kn">from</span> <span class="n">tokenizers.models</span> <span class="kn">import</span> <span class="n">BPE</span>
+<span class="kn">from</span> <span class="n">tokenizers.trainers</span> <span class="kn">import</span> <span class="n">BpeTrainer</span>
+
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="nc">Tokenizer</span><span class="p">(</span><span class="nc">BPE</span><span class="p">(</span><span class="n">unk_token</span><span class="o">=</span><span class="sh">"</span><span class="s">[UNK]</span><span class="sh">"</span><span class="p">))</span>
+<span class="n">trainer</span> <span class="o">=</span> <span class="nc">BpeTrainer</span><span class="p">(</span><span class="n">vocab_size</span><span class="o">=</span><span class="mi">32000</span><span class="p">,</span> <span class="n">special_tokens</span><span class="o">=</span><span class="p">[</span><span class="sh">"</span><span class="s">[UNK]</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">[CLS]</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">[SEP]</span><span class="sh">"</span><span class="p">])</span>
+<span class="n">tokenizer</span><span class="p">.</span><span class="nf">train</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="p">[</span><span class="sh">"</span><span class="s">corpus.txt</span><span class="sh">"</span><span class="p">],</span> <span class="n">trainer</span><span class="o">=</span><span class="n">trainer</span><span class="p">)</span>
+
+<span class="n">encoded</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="p">.</span><span class="nf">encode</span><span class="p">(</span><span class="sh">"</span><span class="s">unbelievable</span><span class="sh">"</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">encoded</span><span class="p">.</span><span class="n">tokens</span><span class="p">)</span>  <span class="c1"># ['un', 'believe', 'able'] — approximate
+</span></code></pre></div></div>
+
+<h3 id="33-sentencepiece-and-unigram-lm">3.3 SentencePiece and Unigram LM</h3>
+
+<p><strong>SentencePiece</strong> (Kudo &amp; Richardson, 2018) operates directly on raw Unicode bytes, requiring no pre-tokenization step. It supports two algorithms:</p>
+
+<p><strong>BPE</strong> (as above), and <strong>Unigram Language Model</strong> — which starts from a large vocabulary and prunes tokens whose removal least increases the corpus log-likelihood under a unigram model:</p>
+
+\[\mathcal{L} = \sum_{s \in \mathcal{D}} \log P(s) = \sum_{s \in \mathcal{D}} \log \sum_{\mathbf{x} \in \mathcal{S}(s)} \prod_{i} p(x_i)\]
+
+<p>where $\mathcal{S}(s)$ is the set of all segmentations of sentence $s$ and $p(x_i)$ is the unigram probability of subword $x_i$. Unigram tokenization tends to produce more probabilistically grounded subword splits. It is used in LLaMA, T5, and mT5.</p>
+
+<hr />
+
+<h2 id="part-4-neural-language-models">Part 4: Neural Language Models</h2>
+
+<h3 id="41-the-neural-approach">4.1 The Neural Approach</h3>
 
 <p>The key idea: represent words as continuous vectors (embeddings) and use a neural network to predict the next word. This enables <strong>generalization</strong> — similar words have similar embeddings, so knowledge about “cat” transfers to “dog”.</p>
 
-<h3 id="32-bengios-neural-language-model-2003">3.2 Bengio’s Neural Language Model (2003)</h3>
+<h3 id="42-bengios-neural-language-model-2003">4.2 Bengio’s Neural Language Model (2003)</h3>
 
 <p><strong>Architecture:</strong></p>
 
@@ -351,7 +414,7 @@ Output layer (softmax over vocabulary)
         <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc2</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span>
 </code></pre></div></div>
 
-<h3 id="33-word-embeddings">3.3 Word Embeddings</h3>
+<h3 id="43-word-embeddings">4.3 Word Embeddings</h3>
 
 <p>Each word is a dense vector in $\mathbb{R}^d$ (typically $d = 50$–$300$), learned from data. The geometry of this space captures semantic and syntactic relationships.</p>
 
@@ -359,13 +422,13 @@ Output layer (softmax over vocabulary)
 
 \[\text{king} - \text{man} + \text{woman} \approx \text{queen}\]
 
-<p>Embeddings are now universally used as the input layer of language models.</p>
+<p>Word2Vec trains these embeddings efficiently using either skip-gram (predict context words from a center word) or CBOW (predict center word from context), with negative sampling to avoid computing the full softmax over the vocabulary.</p>
 
 <hr />
 
-<h2 id="part-4-recurrent-neural-network-language-models">Part 4: Recurrent Neural Network Language Models</h2>
+<h2 id="part-5-recurrent-neural-network-language-models">Part 5: Recurrent Neural Network Language Models</h2>
 
-<h3 id="41-rnn-language-models">4.1 RNN Language Models</h3>
+<h3 id="51-rnn-language-models">5.1 RNN Language Models</h3>
 
 <p><strong>Key innovation:</strong> process sequences one token at a time, carrying a hidden state $\mathbf{h}_t$ that summarizes all previous context.</p>
 
@@ -375,7 +438,7 @@ Output layer (softmax over vocabulary)
 
 <p>In principle, $\mathbf{h}_t$ can carry information from arbitrarily far back. In practice, vanilla RNNs suffer from vanishing gradients and forget long-range dependencies.</p>
 
-<h3 id="42-lstm-language-models">4.2 LSTM Language Models</h3>
+<h3 id="52-lstm-language-models">5.2 LSTM Language Models</h3>
 
 <p>Long Short-Term Memory (LSTM) units add explicit gating to control what information is retained, updated, or forgotten:</p>
 
@@ -393,43 +456,55 @@ Output layer (softmax over vocabulary)
 
 <p>The cell state $\mathbf{c}_t$ acts as a long-range memory — gradients can flow through it unchanged over many steps, resolving the vanishing gradient problem.</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">LSTMLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">):</span>
-        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
-        <span class="n">self</span><span class="p">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">)</span>
-        <span class="n">self</span><span class="p">.</span><span class="n">lstm</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LSTM</span><span class="p">(</span><span class="n">embed_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span>
-                            <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
-        <span class="n">self</span><span class="p">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="n">embeds</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">lstm_out</span><span class="p">,</span> <span class="n">hidden</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">lstm</span><span class="p">(</span><span class="n">embeds</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc</span><span class="p">(</span><span class="n">lstm_out</span><span class="p">),</span> <span class="n">hidden</span>
-</code></pre></div></div>
-
-<p><strong>Remaining limitations:</strong> sequential processing prevents parallelism; attention still degrades over very long contexts; there is an information bottleneck in the fixed-size hidden state.</p>
+<p><strong>Remaining limitations:</strong> sequential processing prevents parallelism; there is an information bottleneck in the fixed-size hidden state; performance degrades for contexts beyond a few hundred tokens.</p>
 
 <hr />
 
-<h2 id="part-5-transformer-language-models">Part 5: Transformer Language Models</h2>
+<h2 id="part-6-transformer-language-models">Part 6: Transformer Language Models</h2>
 
-<h3 id="51-causal-self-attention">5.1 Causal Self-Attention</h3>
+<h3 id="61-scaled-dot-product-attention">6.1 Scaled Dot-Product Attention</h3>
 
-<p>Introduced in Vaswani et al. (2017), the transformer replaces recurrence with <strong>self-attention</strong>, allowing every position to directly attend to every other position in parallel.</p>
+<p>Introduced in Vaswani et al. (2017), attention allows every position to directly query every other position. Given queries $Q$, keys $K$, and values $V$:</p>
 
-<p>For a <strong>decoder-only</strong> (causal) language model, position $i$ may only attend to positions $j \leq i$:</p>
+\[\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V\]
 
-\[\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right) V\]
+<p>The scaling factor $\frac{1}{\sqrt{d_k}}$ prevents the dot products from growing large when $d_k$ is high, which would push softmax into saturation with near-zero gradients.</p>
 
-<p>where $M$ is the causal mask:</p>
+<p>For a <strong>causal</strong> (decoder-only) language model, a mask $M$ zeroes out future positions:</p>
 
-\[M_{ij} = \begin{cases} 0 &amp; \text{if } i \geq j \\ -\infty &amp; \text{if } i &lt; j \end{cases}\]
+\[\text{CausalAttention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right) V, \quad M_{ij} = \begin{cases} 0 &amp; i \geq j \\ -\infty &amp; i &lt; j \end{cases}\]
 
-<p>Setting future positions to $-\infty$ zeroes them out after softmax, ensuring no information leaks from future tokens.</p>
+<h3 id="62-multi-head-attention">6.2 Multi-Head Attention</h3>
 
-<h3 id="52-gpt-architecture">5.2 GPT Architecture</h3>
+<p>Rather than computing a single attention function, <strong>multi-head attention</strong> runs $h$ attention heads in parallel on lower-dimensional projections, then concatenates and projects the results:</p>
 
-<p>A <strong>decoder-only</strong> transformer stack with causal attention, pre-layer normalization, and residual connections.</p>
+\[\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)\, W^O\]
+
+\[\text{head}_i = \text{Attention}(Q W_i^Q,\; K W_i^K,\; V W_i^V)\]
+
+<p>where $W_i^Q \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $W_i^K \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $W_i^V \in \mathbb{R}^{d_{\text{model}} \times d_v}$, $W^O \in \mathbb{R}^{h d_v \times d_{\text{model}}}$, and typically $d_k = d_v = d_{\text{model}} / h$.</p>
+
+<p>Each head can attend to different aspects of the input — one head might track syntactic agreement, another long-range coreference, another local semantics. This representational diversity is a key reason transformers outperform single-head attention in practice.</p>
+
+<h3 id="63-positional-encoding">6.3 Positional Encoding</h3>
+
+<p>Self-attention is permutation-invariant — it has no built-in notion of order. Positional information must be injected explicitly.</p>
+
+<p><strong>Sinusoidal positional encoding (original Transformer):</strong></p>
+
+\[PE_{(pos, 2i)} = \sin\!\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right), \quad PE_{(pos, 2i+1)} = \cos\!\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)\]
+
+<p>Added to the token embeddings, these fixed sinusoids encode absolute position and allow the model to attend by relative position via dot products (since $\sin(a-b) = \sin a \cos b - \cos a \sin b$).</p>
+
+<p><strong>Rotary Positional Embedding (RoPE)</strong>, used in LLaMA and most modern models, encodes relative positions directly into the attention score by rotating query and key vectors:</p>
+
+\[\text{RoPE}(q, m) = q \cdot e^{im\theta}\]
+
+<p>where position $m$ rotates the query by angle $m\theta$ in each 2D subspace of the embedding. The dot product $\langle \text{RoPE}(q, m), \text{RoPE}(k, n) \rangle$ depends only on the relative position $m - n$, making it naturally extrapolate to longer sequences than seen during training.</p>
+
+<h3 id="64-gpt-architecture">6.4 GPT Architecture</h3>
+
+<p>A decoder-only transformer stack with causal attention, pre-layer normalization, and residual connections.</p>
 
 <p>For input $\mathbf{x} = [x_1, \ldots, x_n]$:</p>
 
@@ -439,7 +514,7 @@ Output layer (softmax over vocabulary)
 
 \[P(x_{n+1} \mid x_1, \ldots, x_n) = \text{softmax}(W_e\, \mathbf{h}_L[n])\]
 
-<p>The weight matrix $W_e$ is typically tied to the token embedding matrix.</p>
+<p>Each transformer block applies (in pre-LN order): layer norm → multi-head causal attention → residual; then layer norm → position-wise FFN → residual. The FFN typically expands the dimension by 4× with a GELU activation.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">GPTLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">dim_ff</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
@@ -463,20 +538,21 @@ Output layer (softmax over vocabulary)
 </code></pre></div></div>
 
 <p><strong>Why transformers displaced RNNs:</strong></p>
-<ul>
+
+<ol>
   <li>Full parallelism — all positions computed simultaneously during training.</li>
   <li>Direct $O(1)$-hop connections between any two positions — no degradation with distance.</li>
   <li>Better gradient flow — no sequential multiplicative chain.</li>
   <li>Scales to billions of parameters without architectural changes.</li>
-</ul>
+</ol>
 
-<p><strong>Cost:</strong> $O(n^2)$ memory and compute in sequence length, though efficient attention variants address this (see Part 10).</p>
+<p><strong>Cost:</strong> $O(n^2)$ memory and compute in sequence length, addressed by efficient attention variants (see Part 11).</p>
 
 <hr />
 
-<h2 id="part-6-training-objectives">Part 6: Training Objectives</h2>
+<h2 id="part-7-training-objectives">Part 7: Training Objectives</h2>
 
-<h3 id="61-cross-entropy-loss">6.1 Cross-Entropy Loss</h3>
+<h3 id="71-cross-entropy-loss">7.1 Cross-Entropy Loss</h3>
 
 <p>The standard objective is maximum likelihood — minimize the negative log-likelihood of the training tokens:</p>
 
@@ -490,25 +566,25 @@ Output layer (softmax over vocabulary)
     <span class="p">)</span>
 </code></pre></div></div>
 
-<h3 id="62-perplexity">6.2 Perplexity</h3>
+<h3 id="72-perplexity">7.2 Perplexity</h3>
 
 <p><strong>Perplexity</strong> is the exponential of the cross-entropy loss — it measures how “surprised” the model is by held-out text:</p>
 
 \[\text{PPL} = \exp\!\left(-\frac{1}{N}\sum_{i=1}^{N} \log P(w_i \mid w_1, \ldots, w_{i-1})\right)\]
 
-<p><strong>Interpretation:</strong> a perplexity of $k$ means the model is, on average, as uncertain as if choosing uniformly from $k$ words. Lower is better. Human-level perplexity on typical English text is roughly 10–20.</p>
+<p>A perplexity of $k$ means the model is, on average, as uncertain as if choosing uniformly from $k$ words. Lower is better. Human-level perplexity on typical English text is roughly 10–20.</p>
 
-<h3 id="63-teacher-forcing">6.3 Teacher Forcing</h3>
+<h3 id="73-teacher-forcing">7.3 Teacher Forcing</h3>
 
-<p>During training, the model conditions on <strong>ground-truth</strong> previous tokens rather than its own predictions. This prevents error accumulation during training and makes the loss signal cleaner.</p>
+<p>During training, the model conditions on ground-truth previous tokens rather than its own predictions. This prevents error accumulation during training and makes the loss signal cleaner.</p>
 
-<p>At <strong>inference</strong>, the model generates autoregressively — each predicted token is appended to the context for the next step. This training/inference discrepancy (called <em>exposure bias</em>) is an active area of research.</p>
+<p>At inference, the model generates autoregressively — each predicted token is appended to the context for the next step. This training/inference discrepancy (called exposure bias) is an active area of research.</p>
 
 <hr />
 
-<h2 id="part-7-decoding-strategies">Part 7: Decoding Strategies</h2>
+<h2 id="part-8-decoding-strategies">Part 8: Decoding Strategies</h2>
 
-<h3 id="71-greedy-decoding">7.1 Greedy Decoding</h3>
+<h3 id="81-greedy-decoding">8.1 Greedy Decoding</h3>
 
 <p>Always select the most probable next token:</p>
 
@@ -525,7 +601,7 @@ Output layer (softmax over vocabulary)
     <span class="k">return</span> <span class="n">current</span>
 </code></pre></div></div>
 
-<h3 id="72-beam-search">7.2 Beam Search</h3>
+<h3 id="82-beam-search">8.2 Beam Search</h3>
 
 <p>Maintain the top-$k$ most probable sequences at each step. The beam score applies a length penalty $\alpha$ to prevent favouring short outputs:</p>
 
@@ -533,7 +609,7 @@ Output layer (softmax over vocabulary)
 
 <p>Beam search is effective for structured tasks (translation, summarization) where there is a canonical correct output, but can produce bland text for open-ended generation.</p>
 
-<h3 id="73-sampling-methods">7.3 Sampling Methods</h3>
+<h3 id="83-sampling-methods">8.3 Sampling Methods</h3>
 
 <p><strong>Top-$k$ sampling</strong> restricts sampling to the $k$ most probable tokens, discarding the long tail:</p>
 
@@ -551,13 +627,12 @@ Output layer (softmax over vocabulary)
     <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">sorted_probs</span><span class="p">,</span> <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">sort</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">descending</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">cumsum</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cumsum</span><span class="p">(</span><span class="n">sorted_probs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="c1"># Remove tokens beyond the nucleus
-</span>    <span class="n">sorted_probs</span><span class="p">[</span><span class="n">cumsum</span> <span class="o">-</span> <span class="n">sorted_probs</span> <span class="o">&gt;</span> <span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sorted_probs</span><span class="p">[</span><span class="n">cumsum</span> <span class="o">-</span> <span class="n">sorted_probs</span> <span class="o">&gt;</span> <span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">sorted_probs</span> <span class="o">/=</span> <span class="n">sorted_probs</span><span class="p">.</span><span class="nf">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sorted_indices</span><span class="p">.</span><span class="nf">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">torch</span><span class="p">.</span><span class="nf">multinomial</span><span class="p">(</span><span class="n">sorted_probs</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 </code></pre></div></div>
 
-<h3 id="74-temperature-scaling">7.4 Temperature Scaling</h3>
+<h3 id="84-temperature-scaling">8.4 Temperature Scaling</h3>
 
 <p>Temperature $T$ controls the sharpness of the distribution before sampling:</p>
 
@@ -573,9 +648,9 @@ Output layer (softmax over vocabulary)
 
 <hr />
 
-<h2 id="part-8-pre-training-and-fine-tuning">Part 8: Pre-training and Fine-tuning</h2>
+<h2 id="part-9-pre-training-and-fine-tuning">Part 9: Pre-training and Fine-tuning</h2>
 
-<h3 id="81-the-two-stage-paradigm">8.1 The Two-Stage Paradigm</h3>
+<h3 id="91-the-two-stage-paradigm">9.1 The Two-Stage Paradigm</h3>
 
 <p>Modern language modelling follows a two-stage approach:</p>
 
@@ -586,49 +661,58 @@ Output layer (softmax over vocabulary)
 
 <p>This paradigm works because language modelling is an extraordinarily rich self-supervised signal — predicting the next word requires understanding syntax, semantics, facts, and reasoning.</p>
 
-<h3 id="82-fine-tuning-approaches">8.2 Fine-tuning Approaches</h3>
+<h3 id="92-fine-tuning-approaches">9.2 Fine-tuning Approaches</h3>
 
 <p><strong>Supervised fine-tuning (SFT):</strong> train on task-specific input-output pairs, typically for 3–5 epochs with a small learning rate ($\sim 10^{-5}$).</p>
 
 <p><strong>Instruction tuning:</strong> fine-tune on a large, diverse set of (instruction, response) pairs. The model learns to follow natural language instructions, generalizing to unseen tasks at inference time.</p>
 
+<h3 id="93-rlhf-and-dpo">9.3 RLHF and DPO</h3>
+
 <p><strong>RLHF (Reinforcement Learning from Human Feedback):</strong></p>
 
 <ol>
   <li>Collect human preference comparisons between model outputs.</li>
-  <li>Train a <strong>reward model</strong> $r_\phi$ to predict human preference.</li>
+  <li>Train a reward model $r_\phi$ to predict human preference.</li>
   <li>Fine-tune the LM policy $\pi_\theta$ to maximize reward using PPO:</li>
 </ol>
 
-\[\mathcal{L}(\theta) = \mathbb{E}\!\left[\min\!\left(r_t(\theta)\hat{A}_t,\; \mathrm{clip}(r_t(\theta), 1-\varepsilon, 1+\varepsilon)\hat{A}_t\right)\right]\]
+\[\mathcal{L}_{\text{PPO}}(\theta) = \mathbb{E}\!\left[\min\!\left(r_t(\theta)\hat{A}_t,\; \mathrm{clip}(r_t(\theta), 1-\varepsilon, 1+\varepsilon)\hat{A}_t\right)\right]\]
 
-<p>where $r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \mid s_t)}$ is the probability ratio and $\hat{A}_t$ is the advantage estimate. RLHF is responsible for the helpful, harmless, honest behaviour of ChatGPT and similar systems.</p>
+<p>where $r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \mid s_t)}$ is the probability ratio. RLHF is responsible for the helpful, harmless, honest behaviour of ChatGPT and similar systems.</p>
 
-<h3 id="83-parameter-efficient-fine-tuning">8.3 Parameter-Efficient Fine-tuning</h3>
+<p><strong>DPO (Direct Preference Optimization)</strong>, introduced by Rafailov et al. (2023), eliminates the separate reward model entirely. It shows that the RLHF objective can be re-expressed as a classification loss directly on preference pairs $(y_w \succ y_l)$:</p>
 
-<p>Fine-tuning all parameters of a large model is expensive. <strong>LoRA (Low-Rank Adaptation)</strong> instead adds a trainable low-rank perturbation to frozen pre-trained weights:</p>
+\[\mathcal{L}_{\text{DPO}}(\theta) = -\mathbb{E}_{(x, y_w, y_l)}\!\left[\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)\right]\]
+
+<p>where $y_w$ is the preferred response, $y_l$ the dispreferred one, $\pi_{\text{ref}}$ is the reference (SFT) policy, and $\beta$ controls deviation from the reference. DPO is simpler to implement, more stable to train, and has become a widely adopted RLHF alternative.</p>
+
+<h3 id="94-parameter-efficient-fine-tuning">9.4 Parameter-Efficient Fine-tuning</h3>
+
+<p>Fine-tuning all parameters of a large model is expensive. <strong>LoRA (Low-Rank Adaptation)</strong> adds a trainable low-rank perturbation to frozen pre-trained weights:</p>
 
 \[W' = W_0 + \Delta W = W_0 + BA\]
 
 <p>where $W_0 \in \mathbb{R}^{d \times d}$ is frozen, $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times d}$ are trainable, with rank $r \ll d$.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">LoRALayer</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
         <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
         <span class="n">self</span><span class="p">.</span><span class="n">lora_A</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">randn</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.01</span><span class="p">)</span>
         <span class="n">self</span><span class="p">.</span><span class="n">lora_B</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">zeros</span><span class="p">(</span><span class="n">rank</span><span class="p">,</span> <span class="n">out_features</span><span class="p">))</span>
-
+        <span class="n">self</span><span class="p">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">/</span> <span class="n">rank</span>  <span class="c1"># scaling factor
+</span>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">W0</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">F</span><span class="p">.</span><span class="nf">linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">W0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">@</span> <span class="n">self</span><span class="p">.</span><span class="n">lora_A</span><span class="p">)</span> <span class="o">@</span> <span class="n">self</span><span class="p">.</span><span class="n">lora_B</span>
+        <span class="k">return</span> <span class="n">F</span><span class="p">.</span><span class="nf">linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">W0</span><span class="p">)</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">scale</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">@</span> <span class="n">self</span><span class="p">.</span><span class="n">lora_A</span><span class="p">)</span> <span class="o">@</span> <span class="n">self</span><span class="p">.</span><span class="n">lora_B</span>
 </code></pre></div></div>
 
 <p>LoRA trains only $\sim 0.1\%$ of the original parameters while matching full fine-tuning performance on most tasks.</p>
 
 <hr />
 
-<h2 id="part-9-scaling-laws">Part 9: Scaling Laws</h2>
+<h2 id="part-10-scaling-laws">Part 10: Scaling Laws</h2>
 
-<h3 id="91-power-law-scaling">9.1 Power-Law Scaling</h3>
+<h3 id="101-power-law-scaling">10.1 Power-Law Scaling</h3>
 
 <p>Kaplan et al. (2020) discovered that language model loss follows clean power laws in model size $N$ and data size $D$:</p>
 
@@ -638,17 +722,17 @@ Output layer (softmax over vocabulary)
 
 <p><strong>Key implication:</strong> given a fixed compute budget $C \approx 6ND$, one can predict ahead of time what loss a model will achieve, without running the experiment.</p>
 
-<h3 id="92-chinchilla-scaling-laws">9.2 Chinchilla Scaling Laws</h3>
+<h3 id="102-chinchilla-scaling-laws">10.2 Chinchilla Scaling Laws</h3>
 
-<p>Hoffmann et al. (2022) showed that prior work (including GPT-3) used oversized models trained on too little data. The <strong>compute-optimal</strong> allocation scales model size and data together:</p>
+<p>Hoffmann et al. (2022) showed that prior work (including GPT-3) used oversized models trained on too little data. The compute-optimal allocation scales model size and data together:</p>
 
 \[N^* \propto C^{0.5}, \qquad D^* \propto C^{0.5}\]
 
 <p>The Chinchilla model (70B parameters, 1.4T tokens) outperformed Gopher (280B parameters, 300B tokens) at the same compute cost, validating this prescription.</p>
 
-<h3 id="93-emergent-abilities">9.3 Emergent Abilities</h3>
+<h3 id="103-emergent-abilities">10.3 Emergent Abilities</h3>
 
-<p>Beyond smooth scaling, certain capabilities appear <strong>abruptly</strong> at scale — they are near-zero below a threshold and suddenly usable above it:</p>
+<p>Beyond smooth scaling, certain capabilities appear abruptly at scale — they are near-zero below a threshold and suddenly usable above it:</p>
 
 <ul>
   <li><strong>Few-shot learning</strong> emerges around 10B parameters.</li>
@@ -660,17 +744,27 @@ Output layer (softmax over vocabulary)
 
 <hr />
 
-<h2 id="part-10-modern-techniques">Part 10: Modern Techniques</h2>
+<h2 id="part-11-modern-techniques">Part 11: Modern Techniques</h2>
 
-<h3 id="101-efficient-attention">10.1 Efficient Attention</h3>
+<h3 id="111-efficient-attention">11.1 Efficient Attention</h3>
 
 <p>Standard self-attention is $O(n^2)$ in memory and time. Two prominent approaches address this:</p>
 
-<p><strong>Flash Attention</strong> (Dao et al., 2022) achieves exact attention with $O(n)$ memory by reordering the computation to maximise GPU SRAM reuse. It is 2–4× faster than standard attention with no approximation.</p>
+<p><strong>Flash Attention</strong> (Dao et al., 2022) achieves exact attention with $O(n)$ memory by reordering the computation to maximise GPU SRAM reuse via tiling. It does not approximate attention — it computes the same values as standard attention but avoids materializing the full $n \times n$ attention matrix in HBM. Typical speedup: 2–4×.</p>
 
-<p><strong>Sparse Attention</strong> restricts each token to attend only to a structured subset (e.g., local window + strided global tokens), reducing complexity to $O(n \sqrt{n})$ or $O(n \log n)$.</p>
+<p><strong>Sparse Attention</strong> restricts each token to attend only to a structured subset (e.g., local window + strided global tokens), reducing complexity to $O(n\sqrt{n})$ or $O(n \log n)$.</p>
 
-<h3 id="102-mixture-of-experts">10.2 Mixture of Experts</h3>
+<h3 id="112-kv-cache-and-grouped-query-attention">11.2 KV Cache and Grouped-Query Attention</h3>
+
+<p>During <strong>autoregressive inference</strong>, the key and value matrices for all past tokens must be recomputed at every step — or cached. The <strong>KV cache</strong> stores past $K$ and $V$ tensors so only the new token’s projections are computed each step, reducing per-token inference cost from $O(n)$ to $O(1)$.</p>
+
+<p>The cost is memory: the KV cache for a 70B-parameter model with a 32k-token context can exceed 160 GB. <strong>Grouped-Query Attention (GQA)</strong> (Ainslie et al., 2023) reduces this by sharing key and value heads across multiple query heads. With $g$ query heads per KV head, cache memory shrinks by $g\times$ with minimal quality degradation. LLaMA-2 and Mistral use GQA.</p>
+
+\[\text{GQA}: \quad K_j = V_j \text{ shared by query heads } \{q_{(j-1)g+1}, \ldots, q_{jg}\}\]
+
+<p>Multi-Query Attention (MQA) is the extreme case of $g = h$ — a single KV head shared by all query heads.</p>
+
+<h3 id="113-mixture-of-experts">11.3 Mixture of Experts</h3>
 
 <p><strong>MoE</strong> replaces each dense feed-forward layer with $n$ expert networks and a learned gating function:</p>
 
@@ -678,7 +772,9 @@ Output layer (softmax over vocabulary)
 
 <p>Only the top-$k$ experts (typically $k=2$) are activated per token, so total parameters scale with $n$ but compute per token stays constant. GPT-4 and Mixtral use sparse MoE layers.</p>
 
-<h3 id="103-retrieval-augmented-generation">10.3 Retrieval-Augmented Generation</h3>
+<p>The gating network $G(\mathbf{x}) = \text{softmax}(\text{TopK}(W_g \mathbf{x}))$ must balance load across experts — without auxiliary loss terms, training collapses to using only a few experts. Switch Transformer (Fedus et al., 2021) introduced an auxiliary load-balancing loss to address this.</p>
+
+<h3 id="114-retrieval-augmented-generation">11.4 Retrieval-Augmented Generation</h3>
 
 <p><strong>RAG</strong> decouples parametric knowledge (stored in weights) from non-parametric knowledge (stored in a retrieval index). At inference time, relevant documents are retrieved and appended to the context:</p>
 
@@ -689,21 +785,39 @@ Output layer (softmax over vocabulary)
     <span class="k">return</span> <span class="n">lm</span><span class="p">.</span><span class="nf">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">),</span> <span class="n">docs</span>
 </code></pre></div></div>
 
-<p>RAG enables models to access up-to-date information without retraining, and to cite sources — directly addressing the hallucination problem.</p>
+<p>RAG enables models to access up-to-date information without retraining, and to cite sources — directly addressing the hallucination problem. Dense retrieval (e.g., DPR) encodes both queries and documents as dense vectors and retrieves by maximum inner product search (MIPS).</p>
+
+<h3 id="115-chain-of-thought-reasoning">11.5 Chain-of-Thought Reasoning</h3>
+
+<p>Large language models exhibit <strong>chain-of-thought (CoT)</strong> reasoning when prompted to show intermediate steps before giving a final answer. Wei et al. (2022) demonstrated that this emerges at sufficient scale and dramatically improves performance on arithmetic, commonsense, and symbolic reasoning tasks.</p>
+
+<p><strong>Standard prompting:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Q: Roger has 5 tennis balls. He buys 2 more cans of 3 balls each. How many does he have?
+A: 11
+</code></pre></div></div>
+
+<p><strong>Chain-of-thought prompting:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Q: Roger has 5 tennis balls. He buys 2 more cans of 3 balls each. How many does he have?
+A: Roger starts with 5. 2 cans × 3 balls = 6. 5 + 6 = 11.
+</code></pre></div></div>
+
+<p><strong>Zero-shot CoT</strong> (Kojima et al., 2022) simply appends “Let’s think step by step.” to the prompt, eliciting reasoning without few-shot examples. This works because the model has seen reasoning traces during pre-training.</p>
+
+<p>More recent work — <strong>Self-Consistency</strong> (Wang et al., 2022) — generates multiple CoT paths and takes a majority vote over final answers, further improving accuracy on multi-step problems.</p>
 
 <hr />
 
-<h2 id="part-11-evaluation">Part 11: Evaluation</h2>
+<h2 id="part-12-evaluation">Part 12: Evaluation</h2>
 
-<h3 id="111-intrinsic-metrics">11.1 Intrinsic Metrics</h3>
+<h3 id="121-intrinsic-metrics">12.1 Intrinsic Metrics</h3>
 
-<p><strong>Perplexity (PPL)</strong> — the primary intrinsic metric (see Part 6). Lower is better; human-level is roughly 10–20.</p>
+<p><strong>Perplexity (PPL)</strong> — the primary intrinsic metric (see Part 7). Lower is better; human-level is roughly 10–20.</p>
 
 <p><strong>Bits per character (BPC)</strong> — for character-level models:</p>
 
 \[\text{BPC} = \frac{1}{N} \sum_{i=1}^{N} -\log_2 P(c_i \mid c_1, \ldots, c_{i-1})\]
 
-<h3 id="112-benchmark-suites">11.2 Benchmark Suites</h3>
+<h3 id="122-benchmark-suites">12.2 Benchmark Suites</h3>
 
 <p>Intrinsic metrics don’t capture downstream utility. Standard benchmarks evaluate specific capabilities:</p>
 
@@ -715,6 +829,8 @@ Output layer (softmax over vocabulary)
 
 <p><strong>HumanEval</strong> — coding benchmark: generate Python functions from docstrings. Measures functional correctness by running unit tests.</p>
 
+<p><strong>GSM8K / MATH</strong> — grade-school and competition-level mathematics. A key benchmark for chain-of-thought and reasoning capabilities.</p>
+
 <hr />
 
 <h2 id="summary">Summary</h2>
@@ -723,41 +839,82 @@ Output layer (softmax over vocabulary)
 
 <p><strong>N-grams</strong> — Markov assumption, MLE estimation, severe sparsity. Strong baseline for the pre-neural era.</p>
 
+<p><strong>Tokenization</strong> — BPE and SentencePiece/Unigram LM convert raw text to subword tokens, balancing vocabulary size with OOV coverage.</p>
+
 <p><strong>Neural LMs (Bengio 2003)</strong> — word embeddings enable generalization across semantically similar words.</p>
 
 <p><strong>RNNs / LSTMs</strong> — sequential hidden state enables variable-length context; gating resolves vanishing gradients.</p>
 
-<p><strong>Transformers (2017)</strong> — parallel self-attention with direct long-range connections. Dominant architecture to this day.</p>
+<p><strong>Transformers (2017)</strong> — parallel self-attention with direct long-range connections. Multi-head attention captures diverse syntactic and semantic relationships. RoPE encodes relative position without fixed-length constraints.</p>
 
 <p><strong>Cross-entropy / perplexity</strong> — training objective and primary intrinsic evaluation metric.</p>
 
 <p><strong>Decoding</strong> — greedy is fast but boring; nucleus sampling ($p=0.9$, $T \approx 0.8$) is the practical default for generation.</p>
 
-<p><strong>Pre-training + fine-tuning</strong> — large-scale unsupervised pre-training followed by task-specific adaptation (SFT, RLHF, LoRA).</p>
+<p><strong>Pre-training + fine-tuning</strong> — large-scale unsupervised pre-training followed by SFT, RLHF or DPO, and LoRA.</p>
 
 <p><strong>Scaling laws</strong> — loss follows power laws; compute-optimal training requires scaling model and data together (Chinchilla).</p>
 
 <p><strong>Emergent abilities</strong> — qualitatively new capabilities appear abruptly at scale.</p>
 
-<p><strong>Modern techniques</strong> — Flash Attention, MoE, and RAG push the efficiency and capability frontier.</p>
+<p><strong>Modern techniques</strong> — Flash Attention, GQA/KV cache, MoE, RAG, and chain-of-thought push the efficiency and capability frontier.</p>
 
 <hr />
 
 <h2 id="references">References</h2>
 
 <ol>
-  <li>Bengio, Y. et al. (2003). <em>A Neural Probabilistic Language Model.</em> JMLR.</li>
-  <li>Mikolov, T. et al. (2013). <em>Efficient Estimation of Word Representations in Vector Space.</em> ICLR.</li>
-  <li>Hochreiter, S. &amp; Schmidhuber, J. (1997). <em>Long Short-Term Memory.</em> Neural Computation.</li>
-  <li>Vaswani, A. et al. (2017). <em>Attention is All You Need.</em> NeurIPS.</li>
-  <li>Devlin, J. et al. (2019). <em>BERT: Pre-training of Deep Bidirectional Transformers.</em> NAACL.</li>
-  <li>Radford, A. et al. (2019). <em>Language Models are Unsupervised Multitask Learners.</em> OpenAI Blog.</li>
-  <li>Brown, T. et al. (2020). <em>Language Models are Few-Shot Learners.</em> NeurIPS.</li>
-  <li>Kaplan, J. et al. (2020). <em>Scaling Laws for Neural Language Models.</em> arXiv.</li>
-  <li>Hoffmann, J. et al. (2022). <em>Training Compute-Optimal Large Language Models.</em> NeurIPS.</li>
-  <li>Ouyang, L. et al. (2022). <em>Training Language Models to Follow Instructions with Human Feedback.</em> NeurIPS.</li>
-  <li>Hu, E. et al. (2022). <em>LoRA: Low-Rank Adaptation of Large Language Models.</em> ICLR.</li>
-  <li>Dao, T. et al. (2022). <em>FlashAttention: Fast and Memory-Efficient Exact Attention.</em> NeurIPS.</li>
+  <li>
+    <p>Bengio, Yoshua, Réjean Ducharme, Pascal Vincent, and Christian Janvin. “A Neural Probabilistic Language Model.” <em>Journal of Machine Learning Research</em> 3 (2003): 1137–1155.</p>
+  </li>
+  <li>
+    <p>Mikolov, Tomas, Ilya Sutskever, Kai Chen, Greg Corrado, and Jeffrey Dean. “Distributed Representations of Words and Phrases and Their Compositionality.” In <em>Advances in Neural Information Processing Systems</em>, vol. 26. Curran Associates, 2013.</p>
+  </li>
+  <li>
+    <p>Sennrich, Rico, Barry Haddow, and Alexandra Birch. “Neural Machine Translation of Rare Words with Subword Units.” In <em>Proceedings of the 54th Annual Meeting of the ACL</em>, pp. 1715–1725. ACL, 2016.</p>
+  </li>
+  <li>
+    <p>Kudo, Taku, and John Richardson. “SentencePiece: A Simple and Language Independent Subword Tokenizer and Detokenizer for Neural Text Processing.” In <em>Proceedings of EMNLP 2018: System Demonstrations</em>, pp. 66–71. ACL, 2018.</p>
+  </li>
+  <li>
+    <p>Hochreiter, Sepp, and Jürgen Schmidhuber. “Long Short-Term Memory.” <em>Neural Computation</em> 9, no. 8 (1997): 1735–1780.</p>
+  </li>
+  <li>
+    <p>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, and Illia Polosukhin. “Attention Is All You Need.” In <em>Advances in Neural Information Processing Systems</em>, vol. 30. Curran Associates, 2017.</p>
+  </li>
+  <li>
+    <p>Su, Jianlin, Murtadha Ahmed, Yu Lu, Shengfeng Pan, Wen Bo, and Yunfeng Liu. “RoFormer: Enhanced Transformer with Rotary Position Embedding.” <em>Neurocomputing</em> 568 (2024): 127063.</p>
+  </li>
+  <li>
+    <p>Brown, Tom, Benjamin Mann, Nick Ryder, et al. “Language Models are Few-Shot Learners.” In <em>Advances in Neural Information Processing Systems</em>, vol. 33, pp. 1877–1901. Curran Associates, 2020.</p>
+  </li>
+  <li>
+    <p>Kaplan, Jared, Sam McCandlish, Tom Henighan, et al. “Scaling Laws for Neural Language Models.” arXiv preprint arXiv:2001.08361, 2020.</p>
+  </li>
+  <li>
+    <p>Hoffmann, Jordan, Sebastian Borgeaud, Arthur Mensch, et al. “Training Compute-Optimal Large Language Models.” In <em>Advances in Neural Information Processing Systems</em>, vol. 35, pp. 30016–30030. Curran Associates, 2022.</p>
+  </li>
+  <li>
+    <p>Ouyang, Long, Jeffrey Wu, Xu Jiang, et al. “Training Language Models to Follow Instructions with Human Feedback.” In <em>Advances in Neural Information Processing Systems</em>, vol. 35, pp. 27730–27744. Curran Associates, 2022.</p>
+  </li>
+  <li>
+    <p>Rafailov, Rafael, Archit Sharma, Eric Mitchell, Christopher D. Manning, Stefano Ermon, and Chelsea Finn. “Direct Preference Optimization: Your Language Model is Secretly a Reward Model.” In <em>Advances in Neural Information Processing Systems</em>, vol. 36. Curran Associates, 2023.</p>
+  </li>
+  <li>
+    <p>Hu, Edward J., Yelong Shen, Phillip Wallis, et al. “LoRA: Low-Rank Adaptation of Large Language Models.” In <em>International Conference on Learning Representations</em>. 2022.</p>
+  </li>
+  <li>
+    <p>Dao, Tri, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. “FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness.” In <em>Advances in Neural Information Processing Systems</em>, vol. 35. Curran Associates, 2022.</p>
+  </li>
+  <li>
+    <p>Ainslie, Joshua, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. “GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints.” In <em>Proceedings of EMNLP 2023</em>, pp. 4895–4901. ACL, 2023.</p>
+  </li>
+  <li>
+    <p>Wei, Jason, Xuezhi Wang, Dale Schuurmans, et al. “Chain-of-Thought Prompting Elicits Reasoning in Large Language Models.” In <em>Advances in Neural Information Processing Systems</em>, vol. 35. Curran Associates, 2022.</p>
+  </li>
+  <li>
+    <p>Fedus, William, Barret Zoph, and Noam Shazeer. “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity.” <em>Journal of Machine Learning Research</em> 23, no. 120 (2022): 1–39.</p>
+  </li>
 </ol>
 
     </div>
