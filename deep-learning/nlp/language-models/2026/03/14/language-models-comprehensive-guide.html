@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Understanding Language Models: From N-grams to Large Language Models | Kinsight Labs</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Understanding Language Models: From N-grams to Large Language Models" />
+<meta name="author" content="Kinsight Labs" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Table of Contents" />
+<meta property="og:description" content="Table of Contents" />
+<link rel="canonical" href="https://kinsightlabs.github.io/deep-learning/nlp/language-models/2026/03/14/language-models-comprehensive-guide.html" />
+<meta property="og:url" content="https://kinsightlabs.github.io/deep-learning/nlp/language-models/2026/03/14/language-models-comprehensive-guide.html" />
+<meta property="og:site_name" content="Kinsight Labs" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-03-14T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Understanding Language Models: From N-grams to Large Language Models" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Kinsight Labs"},"dateModified":"2026-03-14T00:00:00+08:00","datePublished":"2026-03-14T00:00:00+08:00","description":"Table of Contents","headline":"Understanding Language Models: From N-grams to Large Language Models","mainEntityOfPage":{"@type":"WebPage","@id":"https://kinsightlabs.github.io/deep-learning/nlp/language-models/2026/03/14/language-models-comprehensive-guide.html"},"url":"https://kinsightlabs.github.io/deep-learning/nlp/language-models/2026/03/14/language-models-comprehensive-guide.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="alternate" type="application/rss+xml" title="Kinsight Labs" href="/feed.xml">
+
+  <!-- Inline theme initialization to prevent flash -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+
+<body>
+  <header class="site-header">
+  <div class="container">
+    <div class="header-content">
+      <a href="/" class="site-title">
+        <img src="/assets/images/logo.jpg" alt="Kinsight Labs" class="site-logo">
+        <span>Kinsight Labs</span>
+      </a>
+
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle">
+        <label for="nav-toggle" class="nav-toggle-label">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+
+        <ul class="nav-list">
+          <li><a href="/">Home</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/projects">Projects</a></li>
+          <li><a href="/presentations">Presentations</a></li>
+          <li><a href="/about">About</a></li>
+          <li>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+              <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+
+  <main class="main-content">
+    <article class="post">
+  <div class="container">
+    <header class="post-header">
+      <h1 class="post-title">Understanding Language Models: From N-grams to Large Language Models</h1>
+      <div class="post-meta">
+        <time datetime="2026-03-14T00:00:00+08:00">
+          March 14, 2026
+        </time>
+        
+        <span class="post-categories">
+          
+          <span class="category">deep-learning</span>
+          
+          <span class="category">nlp</span>
+          
+          <span class="category">language-models</span>
+          
+        </span>
+        
+        
+        <span class="reading-time">21 min read</span>
+      </div>
+    </header>
+
+    <div class="post-content">
+      <h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#part-1-what-is-a-language-model">Part 1: What is a Language Model?</a>
+    <ul>
+      <li><a href="#11-definition">1.1 Definition</a></li>
+      <li><a href="#12-historical-evolution">1.2 Historical Evolution</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-2-classical-n-gram-models">Part 2: Classical N-gram Models</a>
+    <ul>
+      <li><a href="#21-n-gram-probabilities">2.1 N-gram Probabilities</a></li>
+      <li><a href="#22-estimating-probabilities">2.2 Estimating Probabilities</a></li>
+      <li><a href="#23-the-sparsity-problem">2.3 The Sparsity Problem</a></li>
+      <li><a href="#24-smoothing-techniques">2.4 Smoothing Techniques</a></li>
+      <li><a href="#25-limitations">2.5 Limitations</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-3-neural-language-models">Part 3: Neural Language Models</a>
+    <ul>
+      <li><a href="#31-the-neural-approach">3.1 The Neural Approach</a></li>
+      <li><a href="#32-bengios-neural-language-model-2003">3.2 Bengio’s Neural Language Model (2003)</a></li>
+      <li><a href="#33-word-embeddings">3.3 Word Embeddings</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-4-recurrent-neural-network-language-models">Part 4: Recurrent Neural Network Language Models</a>
+    <ul>
+      <li><a href="#41-rnn-language-models">4.1 RNN Language Models</a></li>
+      <li><a href="#42-lstm-language-models">4.2 LSTM Language Models</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-5-transformer-language-models">Part 5: Transformer Language Models</a>
+    <ul>
+      <li><a href="#51-causal-self-attention">5.1 Causal Self-Attention</a></li>
+      <li><a href="#52-gpt-architecture">5.2 GPT Architecture</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-6-training-objectives">Part 6: Training Objectives</a>
+    <ul>
+      <li><a href="#61-cross-entropy-loss">6.1 Cross-Entropy Loss</a></li>
+      <li><a href="#62-perplexity">6.2 Perplexity</a></li>
+      <li><a href="#63-teacher-forcing">6.3 Teacher Forcing</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-7-decoding-strategies">Part 7: Decoding Strategies</a>
+    <ul>
+      <li><a href="#71-greedy-decoding">7.1 Greedy Decoding</a></li>
+      <li><a href="#72-beam-search">7.2 Beam Search</a></li>
+      <li><a href="#73-sampling-methods">7.3 Sampling Methods</a></li>
+      <li><a href="#74-temperature-scaling">7.4 Temperature Scaling</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-8-pre-training-and-fine-tuning">Part 8: Pre-training and Fine-tuning</a>
+    <ul>
+      <li><a href="#81-the-two-stage-paradigm">8.1 The Two-Stage Paradigm</a></li>
+      <li><a href="#82-fine-tuning-approaches">8.2 Fine-tuning Approaches</a></li>
+      <li><a href="#83-parameter-efficient-fine-tuning">8.3 Parameter-Efficient Fine-tuning</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-9-scaling-laws">Part 9: Scaling Laws</a>
+    <ul>
+      <li><a href="#91-power-law-scaling">9.1 Power-Law Scaling</a></li>
+      <li><a href="#92-chinchilla-scaling-laws">9.2 Chinchilla Scaling Laws</a></li>
+      <li><a href="#93-emergent-abilities">9.3 Emergent Abilities</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-10-modern-techniques">Part 10: Modern Techniques</a>
+    <ul>
+      <li><a href="#101-efficient-attention">10.1 Efficient Attention</a></li>
+      <li><a href="#102-mixture-of-experts">10.2 Mixture of Experts</a></li>
+      <li><a href="#103-retrieval-augmented-generation">10.3 Retrieval-Augmented Generation</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-11-evaluation">Part 11: Evaluation</a>
+    <ul>
+      <li><a href="#111-intrinsic-metrics">11.1 Intrinsic Metrics</a></li>
+      <li><a href="#112-benchmark-suites">11.2 Benchmark Suites</a></li>
+    </ul>
+  </li>
+  <li><a href="#summary">Summary</a></li>
+  <li><a href="#references">References</a></li>
+</ul>
+
+<hr />
+
+<h2 id="overview">Overview</h2>
+
+<p>Language models are the foundation of modern natural language processing. From autocomplete on your phone to ChatGPT, they power systems that understand and generate human language. At their core, they answer a deceptively simple question: <em>how likely is this sequence of words?</em> This single task — estimating probability distributions over text — has unlocked capabilities that would have seemed impossible a decade ago.</p>
+
+<p>This post traces the full arc from classical statistical methods to the massive transformer-based systems reshaping AI today:</p>
+
+<ul>
+  <li><strong>Part 1</strong> establishes the mathematical definition of a language model and its historical context.</li>
+  <li><strong>Parts 2–5</strong> trace the architectural evolution: n-grams → neural LMs → RNNs → transformers.</li>
+  <li><strong>Part 6</strong> covers training objectives, including cross-entropy loss and perplexity.</li>
+  <li><strong>Part 7</strong> surveys decoding strategies: greedy, beam search, top-k, nucleus sampling.</li>
+  <li><strong>Part 8</strong> covers the pre-training and fine-tuning paradigm, including RLHF and LoRA.</li>
+  <li><strong>Part 9</strong> derives the empirical scaling laws governing modern LLMs.</li>
+  <li><strong>Parts 10–11</strong> cover modern techniques and evaluation methods.</li>
+</ul>
+
+<p><strong>Prerequisites:</strong> basic probability, familiarity with neural networks.</p>
+
+<hr />
+
+<h2 id="part-1-what-is-a-language-model">Part 1: What is a Language Model?</h2>
+
+<h3 id="11-definition">1.1 Definition</h3>
+
+<p>A <strong>language model</strong> is a probability distribution over sequences of tokens. Given a sequence $w_1, w_2, \ldots, w_n$, it computes:</p>
+
+\[P(w_1, w_2, \ldots, w_n)\]
+
+<p>Applying the chain rule of probability:</p>
+
+\[P(w_1, \ldots, w_n) = \prod_{i=1}^{n} P(w_i \mid w_1, \ldots, w_{i-1})\]
+
+<p><strong>The core task:</strong> predict the next token given all previous tokens. A model that does this well necessarily learns grammar, facts, reasoning patterns, and much more — because all of these are reflected in which continuations are probable.</p>
+
+<h3 id="12-historical-evolution">1.2 Historical Evolution</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1950s   Rule-based systems
+1980s   Statistical methods, n-grams
+1990s   Maximum entropy models
+2000s   Neural language models (Bengio 2003)
+2010s   RNN/LSTM language models
+2013    Word2Vec embeddings
+2017    Transformers ("Attention is All You Need")
+2018    BERT, GPT — the pre-training revolution
+2020    GPT-3 (175B parameters)
+2022    ChatGPT (RLHF)
+2023    GPT-4 (multimodal)
+2024+   Scaling continues...
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="part-2-classical-n-gram-models">Part 2: Classical N-gram Models</h2>
+
+<h3 id="21-n-gram-probabilities">2.1 N-gram Probabilities</h3>
+
+<p>An <strong>n-gram</strong> is a sequence of $n$ consecutive tokens. The <strong>Markov assumption</strong> truncates the conditioning history to the previous $n-1$ words:</p>
+
+<p><strong>Bigram model:</strong></p>
+
+\[P(w_i \mid w_1, \ldots, w_{i-1}) \approx P(w_i \mid w_{i-1})\]
+
+<p><strong>Trigram model:</strong></p>
+
+\[P(w_i \mid w_1, \ldots, w_{i-1}) \approx P(w_i \mid w_{i-2}, w_{i-1})\]
+
+<h3 id="22-estimating-probabilities">2.2 Estimating Probabilities</h3>
+
+<p><strong>Maximum Likelihood Estimation (MLE)</strong> for a bigram model:</p>
+
+\[P(w_i \mid w_{i-1}) = \frac{C(w_{i-1},\, w_i)}{C(w_{i-1})}\]
+
+<p>where $C(\cdot)$ denotes corpus count.</p>
+
+<p><strong>Example:</strong> Given the corpus <code class="language-plaintext highlighter-rouge">"the cat sat on the mat the cat"</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>C("the cat") = 2,  C("the") = 3
+P("cat" | "the") = 2/3 ≈ 0.67
+</code></pre></div></div>
+
+<h3 id="23-the-sparsity-problem">2.3 The Sparsity Problem</h3>
+
+<p>Most n-grams never appear in training data. For a vocabulary of 100,000 words, there are $10^{15}$ possible trigrams, but a typical corpus contains only $\sim 10^9$ tokens. MLE assigns zero probability to the vast majority of grammatically valid sequences — a fundamental failure mode.</p>
+
+<h3 id="24-smoothing-techniques">2.4 Smoothing Techniques</h3>
+
+<p><strong>Laplace (add-one) smoothing</strong> adds a pseudo-count to every n-gram:</p>
+
+\[P_{\text{smooth}}(w_i \mid w_{i-1}) = \frac{C(w_{i-1}, w_i) + 1}{C(w_{i-1}) + V}\]
+
+<p>where $V$ is the vocabulary size.</p>
+
+<p><strong>Kneser-Ney smoothing</strong> — more sophisticated: it considers how many distinct contexts a word appears in, capturing the notion that <em>Francisco</em> is common but almost always follows <em>San</em>, so its standalone continuation probability should be low:</p>
+
+\[P_{KN}(w_i \mid w_{i-1}) = \frac{\max(C(w_{i-1}, w_i) - d,\; 0)}{C(w_{i-1})} + \lambda(w_{i-1})\, P_{\text{continuation}}(w_i)\]
+
+<p>where $d$ is a discount and $\lambda$ is a normalization factor ensuring the distribution sums to 1.</p>
+
+<h3 id="25-limitations">2.5 Limitations</h3>
+
+<p>N-gram models suffer from four structural problems:</p>
+
+<ol>
+  <li><strong>Sparsity</strong> — zero probability for unseen n-grams, even with smoothing.</li>
+  <li><strong>Limited context</strong> — only the previous $n-1$ words are considered.</li>
+  <li><strong>No generalization</strong> — “cat on mat” and “dog on rug” are entirely unrelated.</li>
+  <li><strong>No semantics</strong> — words are discrete symbols with no notion of similarity.</li>
+</ol>
+
+<p>These limitations motivate the neural approach.</p>
+
+<hr />
+
+<h2 id="part-3-neural-language-models">Part 3: Neural Language Models</h2>
+
+<h3 id="31-the-neural-approach">3.1 The Neural Approach</h3>
+
+<p>The key idea: represent words as continuous vectors (embeddings) and use a neural network to predict the next word. This enables <strong>generalization</strong> — similar words have similar embeddings, so knowledge about “cat” transfers to “dog”.</p>
+
+<h3 id="32-bengios-neural-language-model-2003">3.2 Bengio’s Neural Language Model (2003)</h3>
+
+<p><strong>Architecture:</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Input: previous n-1 word indices
+    ↓
+Embedding lookup → concatenate vectors
+    ↓
+Hidden layer (tanh)
+    ↓
+Output layer (softmax over vocabulary)
+</code></pre></div></div>
+
+<p><strong>Mathematical formulation:</strong></p>
+
+\[\mathbf{h} = \tanh\!\left(W_h\,[\mathbf{e}_{w_1};\, \mathbf{e}_{w_2};\, \ldots;\, \mathbf{e}_{w_{n-1}}] + \mathbf{b}_h\right)\]
+
+\[P(w_n \mid w_1, \ldots, w_{n-1}) = \text{softmax}(W_o\,\mathbf{h} + \mathbf{b}_o)\]
+
+<p>This was a proof of concept. The context was still fixed at $n-1$ tokens, but for the first time the model could generalize across semantically similar inputs.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">NeuralLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">context_size</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">embed_dim</span> <span class="o">*</span> <span class="n">context_size</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">embeds</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">).</span><span class="nf">view</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tanh</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">fc1</span><span class="p">(</span><span class="n">embeds</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc2</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="33-word-embeddings">3.3 Word Embeddings</h3>
+
+<p>Each word is a dense vector in $\mathbb{R}^d$ (typically $d = 50$–$300$), learned from data. The geometry of this space captures semantic and syntactic relationships.</p>
+
+<p><strong>Famous example (Word2Vec):</strong></p>
+
+\[\text{king} - \text{man} + \text{woman} \approx \text{queen}\]
+
+<p>Embeddings are now universally used as the input layer of language models.</p>
+
+<hr />
+
+<h2 id="part-4-recurrent-neural-network-language-models">Part 4: Recurrent Neural Network Language Models</h2>
+
+<h3 id="41-rnn-language-models">4.1 RNN Language Models</h3>
+
+<p><strong>Key innovation:</strong> process sequences one token at a time, carrying a hidden state $\mathbf{h}_t$ that summarizes all previous context.</p>
+
+\[\mathbf{h}_t = \tanh(W_{hh}\,\mathbf{h}_{t-1} + W_{xh}\,\mathbf{e}_{w_t} + \mathbf{b}_h)\]
+
+\[P(w_{t+1} \mid w_1, \ldots, w_t) = \text{softmax}(W_{oh}\,\mathbf{h}_t + \mathbf{b}_o)\]
+
+<p>In principle, $\mathbf{h}_t$ can carry information from arbitrarily far back. In practice, vanilla RNNs suffer from vanishing gradients and forget long-range dependencies.</p>
+
+<h3 id="42-lstm-language-models">4.2 LSTM Language Models</h3>
+
+<p>Long Short-Term Memory (LSTM) units add explicit gating to control what information is retained, updated, or forgotten:</p>
+
+\[\mathbf{f}_t = \sigma(W_f[\mathbf{h}_{t-1};\, \mathbf{x}_t] + \mathbf{b}_f) \quad \text{(forget gate)}\]
+
+\[\mathbf{i}_t = \sigma(W_i[\mathbf{h}_{t-1};\, \mathbf{x}_t] + \mathbf{b}_i) \quad \text{(input gate)}\]
+
+\[\tilde{\mathbf{c}}_t = \tanh(W_c[\mathbf{h}_{t-1};\, \mathbf{x}_t] + \mathbf{b}_c) \quad \text{(candidate cell state)}\]
+
+\[\mathbf{c}_t = \mathbf{f}_t \odot \mathbf{c}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{c}}_t \quad \text{(cell state update)}\]
+
+\[\mathbf{o}_t = \sigma(W_o[\mathbf{h}_{t-1};\, \mathbf{x}_t] + \mathbf{b}_o) \quad \text{(output gate)}\]
+
+\[\mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{c}_t) \quad \text{(hidden state)}\]
+
+<p>The cell state $\mathbf{c}_t$ acts as a long-range memory — gradients can flow through it unchanged over many steps, resolving the vanishing gradient problem.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">LSTMLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">lstm</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LSTM</span><span class="p">(</span><span class="n">embed_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span>
+                            <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">embeds</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">lstm_out</span><span class="p">,</span> <span class="n">hidden</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">lstm</span><span class="p">(</span><span class="n">embeds</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc</span><span class="p">(</span><span class="n">lstm_out</span><span class="p">),</span> <span class="n">hidden</span>
+</code></pre></div></div>
+
+<p><strong>Remaining limitations:</strong> sequential processing prevents parallelism; attention still degrades over very long contexts; there is an information bottleneck in the fixed-size hidden state.</p>
+
+<hr />
+
+<h2 id="part-5-transformer-language-models">Part 5: Transformer Language Models</h2>
+
+<h3 id="51-causal-self-attention">5.1 Causal Self-Attention</h3>
+
+<p>Introduced in Vaswani et al. (2017), the transformer replaces recurrence with <strong>self-attention</strong>, allowing every position to directly attend to every other position in parallel.</p>
+
+<p>For a <strong>decoder-only</strong> (causal) language model, position $i$ may only attend to positions $j \leq i$:</p>
+
+\[\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right) V\]
+
+<p>where $M$ is the causal mask:</p>
+
+\[M_{ij} = \begin{cases} 0 &amp; \text{if } i \geq j \\ -\infty &amp; \text{if } i &lt; j \end{cases}\]
+
+<p>Setting future positions to $-\infty$ zeroes them out after softmax, ensuring no information leaks from future tokens.</p>
+
+<h3 id="52-gpt-architecture">5.2 GPT Architecture</h3>
+
+<p>A <strong>decoder-only</strong> transformer stack with causal attention, pre-layer normalization, and residual connections.</p>
+
+<p>For input $\mathbf{x} = [x_1, \ldots, x_n]$:</p>
+
+\[\mathbf{h}_0 = \text{Embed}(\mathbf{x}) + \text{PosEmbed}\]
+
+\[\mathbf{h}_l = \text{TransformerBlock}_l(\mathbf{h}_{l-1}), \quad l = 1, \ldots, L\]
+
+\[P(x_{n+1} \mid x_1, \ldots, x_n) = \text{softmax}(W_e\, \mathbf{h}_L[n])\]
+
+<p>The weight matrix $W_e$ is typically tied to the token embedding matrix.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">GPTLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">dim_ff</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">token_embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">position_embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">max_len</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="n">decoder_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">TransformerDecoderLayer</span><span class="p">(</span>
+            <span class="n">d_model</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="o">=</span><span class="n">nhead</span><span class="p">,</span> <span class="n">dim_feedforward</span><span class="o">=</span><span class="n">dim_ff</span><span class="p">,</span>
+            <span class="n">dropout</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="sh">'</span><span class="s">gelu</span><span class="sh">'</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">norm_first</span><span class="o">=</span><span class="bp">True</span>
+        <span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">transformer</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">TransformerDecoder</span><span class="p">(</span><span class="n">decoder_layer</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc_out</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">shape</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">arange</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">x</span><span class="p">.</span><span class="n">device</span><span class="p">).</span><span class="nf">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">token_embedding</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="nf">position_embedding</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">triu</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">ones</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">x</span><span class="p">.</span><span class="n">device</span><span class="p">),</span> <span class="n">diagonal</span><span class="o">=</span><span class="mi">1</span><span class="p">).</span><span class="nf">bool</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">transformer</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">tgt_mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc_out</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Why transformers displaced RNNs:</strong></p>
+<ul>
+  <li>Full parallelism — all positions computed simultaneously during training.</li>
+  <li>Direct $O(1)$-hop connections between any two positions — no degradation with distance.</li>
+  <li>Better gradient flow — no sequential multiplicative chain.</li>
+  <li>Scales to billions of parameters without architectural changes.</li>
+</ul>
+
+<p><strong>Cost:</strong> $O(n^2)$ memory and compute in sequence length, though efficient attention variants address this (see Part 10).</p>
+
+<hr />
+
+<h2 id="part-6-training-objectives">Part 6: Training Objectives</h2>
+
+<h3 id="61-cross-entropy-loss">6.1 Cross-Entropy Loss</h3>
+
+<p>The standard objective is maximum likelihood — minimize the negative log-likelihood of the training tokens:</p>
+
+\[\mathcal{L}(\theta) = -\frac{1}{N} \sum_{i=1}^{N} \log P_\theta(w_i \mid w_1, \ldots, w_{i-1})\]
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+    <span class="c1"># logits: [B, T, V],  targets: [B, T]
+</span>    <span class="k">return</span> <span class="n">nn</span><span class="p">.</span><span class="nc">CrossEntropyLoss</span><span class="p">()(</span>
+        <span class="n">logits</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">logits</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+        <span class="n">targets</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="62-perplexity">6.2 Perplexity</h3>
+
+<p><strong>Perplexity</strong> is the exponential of the cross-entropy loss — it measures how “surprised” the model is by held-out text:</p>
+
+\[\text{PPL} = \exp\!\left(-\frac{1}{N}\sum_{i=1}^{N} \log P(w_i \mid w_1, \ldots, w_{i-1})\right)\]
+
+<p><strong>Interpretation:</strong> a perplexity of $k$ means the model is, on average, as uncertain as if choosing uniformly from $k$ words. Lower is better. Human-level perplexity on typical English text is roughly 10–20.</p>
+
+<h3 id="63-teacher-forcing">6.3 Teacher Forcing</h3>
+
+<p>During training, the model conditions on <strong>ground-truth</strong> previous tokens rather than its own predictions. This prevents error accumulation during training and makes the loss signal cleaner.</p>
+
+<p>At <strong>inference</strong>, the model generates autoregressively — each predicted token is appended to the context for the next step. This training/inference discrepancy (called <em>exposure bias</em>) is an active area of research.</p>
+
+<hr />
+
+<h2 id="part-7-decoding-strategies">Part 7: Decoding Strategies</h2>
+
+<h3 id="71-greedy-decoding">7.1 Greedy Decoding</h3>
+
+<p>Always select the most probable next token:</p>
+
+\[w_{t+1} = \arg\max_w P(w \mid w_1, \ldots, w_t)\]
+
+<p>Fast and deterministic, but often produces repetitive, generic text. Greedy locally optimal choices can lead to globally suboptimal sequences.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">greedy_decode</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">start_tokens</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">start_tokens</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">max_length</span><span class="p">):</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="nf">model</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+        <span class="n">next_token</span> <span class="o">=</span> <span class="n">logits</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:].</span><span class="nf">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cat</span><span class="p">([</span><span class="n">current</span><span class="p">,</span> <span class="n">next_token</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">current</span>
+</code></pre></div></div>
+
+<h3 id="72-beam-search">7.2 Beam Search</h3>
+
+<p>Maintain the top-$k$ most probable sequences at each step. The beam score applies a length penalty $\alpha$ to prevent favouring short outputs:</p>
+
+\[\text{score}(\mathbf{w}) = \frac{1}{|\mathbf{w}|^\alpha} \sum_{i=1}^{|\mathbf{w}|} \log P(w_i \mid w_1, \ldots, w_{i-1})\]
+
+<p>Beam search is effective for structured tasks (translation, summarization) where there is a canonical correct output, but can produce bland text for open-ended generation.</p>
+
+<h3 id="73-sampling-methods">7.3 Sampling Methods</h3>
+
+<p><strong>Top-$k$ sampling</strong> restricts sampling to the $k$ most probable tokens, discarding the long tail:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">top_k_sampling</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span> <span class="o">/</span> <span class="n">temperature</span>
+    <span class="n">topk_values</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">topk</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+    <span class="n">logits</span><span class="p">[</span><span class="n">logits</span> <span class="o">&lt;</span> <span class="n">topk_values</span><span class="p">[:,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]]</span> <span class="o">=</span> <span class="nf">float</span><span class="p">(</span><span class="sh">'</span><span class="s">-inf</span><span class="sh">'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="p">.</span><span class="nf">multinomial</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Top-$p$ (nucleus) sampling</strong> samples from the smallest set of tokens whose cumulative probability exceeds $p$. Unlike top-$k$, the set size adapts to the local distribution — when the model is confident it uses few tokens; when uncertain it uses more:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">top_p_sampling</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span> <span class="o">/</span> <span class="n">temperature</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sorted_probs</span><span class="p">,</span> <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">sort</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">descending</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cumsum</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cumsum</span><span class="p">(</span><span class="n">sorted_probs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Remove tokens beyond the nucleus
+</span>    <span class="n">sorted_probs</span><span class="p">[</span><span class="n">cumsum</span> <span class="o">-</span> <span class="n">sorted_probs</span> <span class="o">&gt;</span> <span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sorted_probs</span> <span class="o">/=</span> <span class="n">sorted_probs</span><span class="p">.</span><span class="nf">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sorted_indices</span><span class="p">.</span><span class="nf">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">torch</span><span class="p">.</span><span class="nf">multinomial</span><span class="p">(</span><span class="n">sorted_probs</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<h3 id="74-temperature-scaling">7.4 Temperature Scaling</h3>
+
+<p>Temperature $T$ controls the sharpness of the distribution before sampling:</p>
+
+\[P(w_i) = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}\]
+
+<ul>
+  <li>$T &lt; 1$: distribution peaks — more deterministic, less diverse.</li>
+  <li>$T = 1$: unmodified distribution.</li>
+  <li>$T &gt; 1$: flatter distribution — more random.</li>
+</ul>
+
+<p><strong>Best practice for open-ended generation:</strong> top-$p$ sampling with $p = 0.9$ and $T \in [0.7, 1.0]$.</p>
+
+<hr />
+
+<h2 id="part-8-pre-training-and-fine-tuning">Part 8: Pre-training and Fine-tuning</h2>
+
+<h3 id="81-the-two-stage-paradigm">8.1 The Two-Stage Paradigm</h3>
+
+<p>Modern language modelling follows a two-stage approach:</p>
+
+<ol>
+  <li><strong>Pre-training:</strong> train on a massive unlabelled corpus (300B+ tokens) to learn a general-purpose representation of language.</li>
+  <li><strong>Fine-tuning:</strong> adapt the pre-trained model to a specific task with a much smaller labelled dataset.</li>
+</ol>
+
+<p>This paradigm works because language modelling is an extraordinarily rich self-supervised signal — predicting the next word requires understanding syntax, semantics, facts, and reasoning.</p>
+
+<h3 id="82-fine-tuning-approaches">8.2 Fine-tuning Approaches</h3>
+
+<p><strong>Supervised fine-tuning (SFT):</strong> train on task-specific input-output pairs, typically for 3–5 epochs with a small learning rate ($\sim 10^{-5}$).</p>
+
+<p><strong>Instruction tuning:</strong> fine-tune on a large, diverse set of (instruction, response) pairs. The model learns to follow natural language instructions, generalizing to unseen tasks at inference time.</p>
+
+<p><strong>RLHF (Reinforcement Learning from Human Feedback):</strong></p>
+
+<ol>
+  <li>Collect human preference comparisons between model outputs.</li>
+  <li>Train a <strong>reward model</strong> $r_\phi$ to predict human preference.</li>
+  <li>Fine-tune the LM policy $\pi_\theta$ to maximize reward using PPO:</li>
+</ol>
+
+\[\mathcal{L}(\theta) = \mathbb{E}\!\left[\min\!\left(r_t(\theta)\hat{A}_t,\; \mathrm{clip}(r_t(\theta), 1-\varepsilon, 1+\varepsilon)\hat{A}_t\right)\right]\]
+
+<p>where $r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \mid s_t)}$ is the probability ratio and $\hat{A}_t$ is the advantage estimate. RLHF is responsible for the helpful, harmless, honest behaviour of ChatGPT and similar systems.</p>
+
+<h3 id="83-parameter-efficient-fine-tuning">8.3 Parameter-Efficient Fine-tuning</h3>
+
+<p>Fine-tuning all parameters of a large model is expensive. <strong>LoRA (Low-Rank Adaptation)</strong> instead adds a trainable low-rank perturbation to frozen pre-trained weights:</p>
+
+\[W' = W_0 + \Delta W = W_0 + BA\]
+
+<p>where $W_0 \in \mathbb{R}^{d \times d}$ is frozen, $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times d}$ are trainable, with rank $r \ll d$.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">LoRALayer</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">lora_A</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">randn</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.01</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">lora_B</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">zeros</span><span class="p">(</span><span class="n">rank</span><span class="p">,</span> <span class="n">out_features</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">W0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">F</span><span class="p">.</span><span class="nf">linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">W0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">@</span> <span class="n">self</span><span class="p">.</span><span class="n">lora_A</span><span class="p">)</span> <span class="o">@</span> <span class="n">self</span><span class="p">.</span><span class="n">lora_B</span>
+</code></pre></div></div>
+
+<p>LoRA trains only $\sim 0.1\%$ of the original parameters while matching full fine-tuning performance on most tasks.</p>
+
+<hr />
+
+<h2 id="part-9-scaling-laws">Part 9: Scaling Laws</h2>
+
+<h3 id="91-power-law-scaling">9.1 Power-Law Scaling</h3>
+
+<p>Kaplan et al. (2020) discovered that language model loss follows clean power laws in model size $N$ and data size $D$:</p>
+
+\[L(N, D) = \left(\frac{N_c}{N}\right)^{\alpha_N} + \left(\frac{D_c}{D}\right)^{\alpha_D}\]
+
+<p>where $\alpha_N \approx 0.076$ and $\alpha_D \approx 0.095$ are empirical exponents. Loss decreases predictably and smoothly — there are no discontinuities as models scale.</p>
+
+<p><strong>Key implication:</strong> given a fixed compute budget $C \approx 6ND$, one can predict ahead of time what loss a model will achieve, without running the experiment.</p>
+
+<h3 id="92-chinchilla-scaling-laws">9.2 Chinchilla Scaling Laws</h3>
+
+<p>Hoffmann et al. (2022) showed that prior work (including GPT-3) used oversized models trained on too little data. The <strong>compute-optimal</strong> allocation scales model size and data together:</p>
+
+\[N^* \propto C^{0.5}, \qquad D^* \propto C^{0.5}\]
+
+<p>The Chinchilla model (70B parameters, 1.4T tokens) outperformed Gopher (280B parameters, 300B tokens) at the same compute cost, validating this prescription.</p>
+
+<h3 id="93-emergent-abilities">9.3 Emergent Abilities</h3>
+
+<p>Beyond smooth scaling, certain capabilities appear <strong>abruptly</strong> at scale — they are near-zero below a threshold and suddenly usable above it:</p>
+
+<ul>
+  <li><strong>Few-shot learning</strong> emerges around 10B parameters.</li>
+  <li><strong>Chain-of-thought reasoning</strong> emerges around 100B parameters.</li>
+  <li><strong>Following complex multi-step instructions</strong> requires 100B+ parameters.</li>
+</ul>
+
+<p>This non-linearity means that scaling is not just “more of the same” — qualitatively new behaviour can emerge that was not predictable from smaller-scale experiments.</p>
+
+<hr />
+
+<h2 id="part-10-modern-techniques">Part 10: Modern Techniques</h2>
+
+<h3 id="101-efficient-attention">10.1 Efficient Attention</h3>
+
+<p>Standard self-attention is $O(n^2)$ in memory and time. Two prominent approaches address this:</p>
+
+<p><strong>Flash Attention</strong> (Dao et al., 2022) achieves exact attention with $O(n)$ memory by reordering the computation to maximise GPU SRAM reuse. It is 2–4× faster than standard attention with no approximation.</p>
+
+<p><strong>Sparse Attention</strong> restricts each token to attend only to a structured subset (e.g., local window + strided global tokens), reducing complexity to $O(n \sqrt{n})$ or $O(n \log n)$.</p>
+
+<h3 id="102-mixture-of-experts">10.2 Mixture of Experts</h3>
+
+<p><strong>MoE</strong> replaces each dense feed-forward layer with $n$ expert networks and a learned gating function:</p>
+
+\[\text{MoE}(\mathbf{x}) = \sum_{i=1}^{n} G(\mathbf{x})_i \cdot E_i(\mathbf{x})\]
+
+<p>Only the top-$k$ experts (typically $k=2$) are activated per token, so total parameters scale with $n$ but compute per token stays constant. GPT-4 and Mixtral use sparse MoE layers.</p>
+
+<h3 id="103-retrieval-augmented-generation">10.3 Retrieval-Augmented Generation</h3>
+
+<p><strong>RAG</strong> decouples parametric knowledge (stored in weights) from non-parametric knowledge (stored in a retrieval index). At inference time, relevant documents are retrieved and appended to the context:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">rag_generate</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">retriever</span><span class="p">,</span> <span class="n">lm</span><span class="p">):</span>
+    <span class="n">docs</span> <span class="o">=</span> <span class="n">retriever</span><span class="p">.</span><span class="nf">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="sh">"</span><span class="se">\n</span><span class="sh">"</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="n">doc</span><span class="p">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">)</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="sh">"</span><span class="s">Context:</span><span class="se">\n</span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="se">\n\n</span><span class="s">Question: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="se">\n\n</span><span class="s">Answer:</span><span class="sh">"</span>
+    <span class="k">return</span> <span class="n">lm</span><span class="p">.</span><span class="nf">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">),</span> <span class="n">docs</span>
+</code></pre></div></div>
+
+<p>RAG enables models to access up-to-date information without retraining, and to cite sources — directly addressing the hallucination problem.</p>
+
+<hr />
+
+<h2 id="part-11-evaluation">Part 11: Evaluation</h2>
+
+<h3 id="111-intrinsic-metrics">11.1 Intrinsic Metrics</h3>
+
+<p><strong>Perplexity (PPL)</strong> — the primary intrinsic metric (see Part 6). Lower is better; human-level is roughly 10–20.</p>
+
+<p><strong>Bits per character (BPC)</strong> — for character-level models:</p>
+
+\[\text{BPC} = \frac{1}{N} \sum_{i=1}^{N} -\log_2 P(c_i \mid c_1, \ldots, c_{i-1})\]
+
+<h3 id="112-benchmark-suites">11.2 Benchmark Suites</h3>
+
+<p>Intrinsic metrics don’t capture downstream utility. Standard benchmarks evaluate specific capabilities:</p>
+
+<p><strong>GLUE / SuperGLUE</strong> — nine tasks covering sentiment analysis, paraphrase detection, natural language inference, and more. SuperGLUE is the harder successor, on which humans score ~89%.</p>
+
+<p><strong>MMLU (Massive Multitask Language Understanding)</strong> — 57 tasks spanning STEM, humanities, social sciences, and professional domains. GPT-4 scores ~86% vs. human expert ~90%.</p>
+
+<p><strong>BIG-bench</strong> — 200+ tasks probing reasoning, creativity, and emergent behaviour not covered by standard benchmarks.</p>
+
+<p><strong>HumanEval</strong> — coding benchmark: generate Python functions from docstrings. Measures functional correctness by running unit tests.</p>
+
+<hr />
+
+<h2 id="summary">Summary</h2>
+
+<p><strong>Language model</strong> — $P(w_n \mid w_1, \ldots, w_{n-1})$. The core task.</p>
+
+<p><strong>N-grams</strong> — Markov assumption, MLE estimation, severe sparsity. Strong baseline for the pre-neural era.</p>
+
+<p><strong>Neural LMs (Bengio 2003)</strong> — word embeddings enable generalization across semantically similar words.</p>
+
+<p><strong>RNNs / LSTMs</strong> — sequential hidden state enables variable-length context; gating resolves vanishing gradients.</p>
+
+<p><strong>Transformers (2017)</strong> — parallel self-attention with direct long-range connections. Dominant architecture to this day.</p>
+
+<p><strong>Cross-entropy / perplexity</strong> — training objective and primary intrinsic evaluation metric.</p>
+
+<p><strong>Decoding</strong> — greedy is fast but boring; nucleus sampling ($p=0.9$, $T \approx 0.8$) is the practical default for generation.</p>
+
+<p><strong>Pre-training + fine-tuning</strong> — large-scale unsupervised pre-training followed by task-specific adaptation (SFT, RLHF, LoRA).</p>
+
+<p><strong>Scaling laws</strong> — loss follows power laws; compute-optimal training requires scaling model and data together (Chinchilla).</p>
+
+<p><strong>Emergent abilities</strong> — qualitatively new capabilities appear abruptly at scale.</p>
+
+<p><strong>Modern techniques</strong> — Flash Attention, MoE, and RAG push the efficiency and capability frontier.</p>
+
+<hr />
+
+<h2 id="references">References</h2>
+
+<ol>
+  <li>Bengio, Y. et al. (2003). <em>A Neural Probabilistic Language Model.</em> JMLR.</li>
+  <li>Mikolov, T. et al. (2013). <em>Efficient Estimation of Word Representations in Vector Space.</em> ICLR.</li>
+  <li>Hochreiter, S. &amp; Schmidhuber, J. (1997). <em>Long Short-Term Memory.</em> Neural Computation.</li>
+  <li>Vaswani, A. et al. (2017). <em>Attention is All You Need.</em> NeurIPS.</li>
+  <li>Devlin, J. et al. (2019). <em>BERT: Pre-training of Deep Bidirectional Transformers.</em> NAACL.</li>
+  <li>Radford, A. et al. (2019). <em>Language Models are Unsupervised Multitask Learners.</em> OpenAI Blog.</li>
+  <li>Brown, T. et al. (2020). <em>Language Models are Few-Shot Learners.</em> NeurIPS.</li>
+  <li>Kaplan, J. et al. (2020). <em>Scaling Laws for Neural Language Models.</em> arXiv.</li>
+  <li>Hoffmann, J. et al. (2022). <em>Training Compute-Optimal Large Language Models.</em> NeurIPS.</li>
+  <li>Ouyang, L. et al. (2022). <em>Training Language Models to Follow Instructions with Human Feedback.</em> NeurIPS.</li>
+  <li>Hu, E. et al. (2022). <em>LoRA: Low-Rank Adaptation of Large Language Models.</em> ICLR.</li>
+  <li>Dao, T. et al. (2022). <em>FlashAttention: Fast and Memory-Efficient Exact Attention.</em> NeurIPS.</li>
+</ol>
+
+    </div>
+
+    
+    <footer class="post-footer">
+      <div class="post-tags">
+        <strong>Tags:</strong>
+        
+        <span class="tag">language-models</span>
+        
+        <span class="tag">nlp</span>
+        
+        <span class="tag">gpt</span>
+        
+        <span class="tag">bert</span>
+        
+        <span class="tag">llm</span>
+        
+        <span class="tag">neural-networks</span>
+        
+        <span class="tag">transformers</span>
+        
+        <span class="tag">pre-training</span>
+        
+        <span class="tag">fine-tuning</span>
+        
+      </div>
+    </footer>
+    
+  </div>
+</article>
+
+  </main>
+
+  <footer class="site-footer">
+  <div class="container">
+    <div class="footer-content">
+      <p>&copy; 2026 Kinsight Labs. All rights reserved.</p>
+
+      <div class="social-links">
+        
+        <a href="https://github.com/kinsightlabs" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        
+        
+        <a href="https://linkedin.com/in/0" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+        </a>
+        
+        
+        <a href="mailto:your.email@domain.com" aria-label="Email">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </a>
+        
+        <a href="/feed.xml" aria-label="RSS Feed">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+
+
+  <script src="/assets/js/theme.js"></script>
+</body>
+</html>

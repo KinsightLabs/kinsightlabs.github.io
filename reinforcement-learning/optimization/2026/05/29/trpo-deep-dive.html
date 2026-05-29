@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Trust Region Policy Optimization (TRPO): A Deep Dive | Kinsight Labs</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Trust Region Policy Optimization (TRPO): A Deep Dive" />
+<meta name="author" content="Kinsight Labs" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Table of Contents" />
+<meta property="og:description" content="Table of Contents" />
+<link rel="canonical" href="https://kinsightlabs.github.io/reinforcement-learning/optimization/2026/05/29/trpo-deep-dive.html" />
+<meta property="og:url" content="https://kinsightlabs.github.io/reinforcement-learning/optimization/2026/05/29/trpo-deep-dive.html" />
+<meta property="og:site_name" content="Kinsight Labs" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-05-29T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Trust Region Policy Optimization (TRPO): A Deep Dive" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Kinsight Labs"},"dateModified":"2026-05-29T00:00:00+08:00","datePublished":"2026-05-29T00:00:00+08:00","description":"Table of Contents","headline":"Trust Region Policy Optimization (TRPO): A Deep Dive","mainEntityOfPage":{"@type":"WebPage","@id":"https://kinsightlabs.github.io/reinforcement-learning/optimization/2026/05/29/trpo-deep-dive.html"},"url":"https://kinsightlabs.github.io/reinforcement-learning/optimization/2026/05/29/trpo-deep-dive.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="alternate" type="application/rss+xml" title="Kinsight Labs" href="/feed.xml">
+
+  <!-- Inline theme initialization to prevent flash -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+
+<body>
+  <header class="site-header">
+  <div class="container">
+    <div class="header-content">
+      <a href="/" class="site-title">
+        <img src="/assets/images/logo.jpg" alt="Kinsight Labs" class="site-logo">
+        <span>Kinsight Labs</span>
+      </a>
+
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle">
+        <label for="nav-toggle" class="nav-toggle-label">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+
+        <ul class="nav-list">
+          <li><a href="/">Home</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/projects">Projects</a></li>
+          <li><a href="/presentations">Presentations</a></li>
+          <li><a href="/about">About</a></li>
+          <li>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+              <svg class="theme-icon theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="theme-icon theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+
+  <main class="main-content">
+    <article class="post">
+  <div class="container">
+    <header class="post-header">
+      <h1 class="post-title">Trust Region Policy Optimization (TRPO): A Deep Dive</h1>
+      <div class="post-meta">
+        <time datetime="2026-05-29T00:00:00+08:00">
+          May 29, 2026
+        </time>
+        
+        <span class="post-categories">
+          
+          <span class="category">reinforcement-learning</span>
+          
+          <span class="category">optimization</span>
+          
+        </span>
+        
+        
+        <span class="reading-time">16 min read</span>
+      </div>
+    </header>
+
+    <div class="post-content">
+      <h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#part-1-fisher-information">Part 1: Fisher Information</a>
+    <ul>
+      <li><a href="#11-the-score-function">1.1 The Score Function</a></li>
+      <li><a href="#12-definition-of-fisher-information">1.2 Definition of Fisher Information</a></li>
+      <li><a href="#13-intuitive-example-gaussian-with-unknown-mean">1.3 Intuitive Example: Gaussian with Unknown Mean</a></li>
+      <li><a href="#14-the-cramrrao-bound">1.4 The Cramér–Rao Bound</a></li>
+      <li><a href="#15-the-fisher-information-matrix-multivariate">1.5 The Fisher Information Matrix (Multivariate)</a></li>
+      <li><a href="#16-fisher-information-as-a-riemannian-metric">1.6 Fisher Information as a Riemannian Metric</a></li>
+      <li><a href="#17-natural-gradient">1.7 Natural Gradient</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-2-policy-gradients--background">Part 2: Policy Gradients — Background</a>
+    <ul>
+      <li><a href="#21-the-rl-objective">2.1 The RL Objective</a></li>
+      <li><a href="#22-the-policy-gradient-theorem">2.2 The Policy Gradient Theorem</a></li>
+      <li><a href="#23-the-problem-with-vanilla-policy-gradient">2.3 The Problem with Vanilla Policy Gradient</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-3-trpo">Part 3: TRPO</a>
+    <ul>
+      <li><a href="#31-the-surrogate-objective">3.1 The Surrogate Objective</a></li>
+      <li><a href="#32-the-trust-region-constraint">3.2 The Trust Region Constraint</a></li>
+      <li><a href="#33-theoretical-justification-monotonic-improvement">3.3 Theoretical Justification: Monotonic Improvement</a></li>
+      <li><a href="#34-quadratic-approximation-of-the-kl-constraint">3.4 Quadratic Approximation of the KL Constraint</a></li>
+      <li><a href="#35-solving-the-constrained-quadratic-problem">3.5 Solving the Constrained Quadratic Problem</a></li>
+      <li><a href="#36-computing-f1-g-via-conjugate-gradient">3.6 Computing F⁻¹g via Conjugate Gradient</a></li>
+      <li><a href="#37-backtracking-line-search">3.7 Backtracking Line Search</a></li>
+      <li><a href="#38-full-trpo-algorithm">3.8 Full TRPO Algorithm</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-4-worked-example--gaussian-policy">Part 4: Worked Example — Gaussian Policy</a></li>
+  <li><a href="#part-5-intuitions-and-practical-notes">Part 5: Intuitions and Practical Notes</a>
+    <ul>
+      <li><a href="#why-kl-and-not-l2-in-parameter-space">Why KL and Not L2 in Parameter Space?</a></li>
+      <li><a href="#why-conjugate-gradient-instead-of-direct-inversion">Why Conjugate Gradient Instead of Direct Inversion?</a></li>
+      <li><a href="#trpo-vs-ppo">TRPO vs PPO</a></li>
+      <li><a href="#practical-hyperparameters">Practical Hyperparameters</a></li>
+    </ul>
+  </li>
+  <li><a href="#summary">Summary</a></li>
+  <li><a href="#references">References</a></li>
+</ul>
+
+<hr />
+
+<h2 id="overview">Overview</h2>
+
+<p>Policy gradient methods are powerful, but they have a fundamental instability problem: a single bad update can collapse a policy, and because the agent then collects data under the broken policy, recovery is painfully slow. <strong>Trust Region Policy Optimization (TRPO)</strong> solves this by turning every update into a constrained optimization — maximizing a surrogate objective while guaranteeing the new policy stays close to the old one in a precise, information-geometric sense.</p>
+
+<p>To understand why TRPO works, you first need to understand <strong>Fisher Information</strong>. The Fisher Information Matrix (FIM) captures how much the output distribution of a model changes as its parameters move — it is the natural metric on the space of probability distributions. TRPO uses it to define “closeness” between policies in a way that is invariant to reparameterization, and to derive the optimal step direction via the natural gradient.</p>
+
+<p>This post builds both ideas from scratch:</p>
+
+<ul>
+  <li><strong>Part 1</strong> derives Fisher Information, the Cramér–Rao bound, the FIM as a Riemannian metric, and the natural gradient.</li>
+  <li><strong>Part 2</strong> reviews the policy gradient theorem and the instability that motivates trust regions.</li>
+  <li><strong>Part 3</strong> derives TRPO rigorously — the surrogate objective, the KL constraint, the monotonic improvement guarantee, and the closed-form optimal step via constrained quadratic optimization.</li>
+  <li><strong>Part 4</strong> works through a concrete Gaussian policy example.</li>
+  <li><strong>Part 5</strong> covers implementation details, TRPO vs PPO, and practical hyperparameters.</li>
+</ul>
+
+<p>Every non-trivial mathematical step is shown explicitly.</p>
+
+<p><strong>Prerequisites:</strong> multivariable calculus, basic probability, and a passing familiarity with policy gradients.</p>
+
+<hr />
+
+<h2 id="part-1-fisher-information">Part 1: Fisher Information</h2>
+
+<h3 id="11-the-score-function">1.1 The Score Function</h3>
+
+<p>Let $p(x; \theta)$ be a parametric probability distribution with parameter $\theta \in \mathbb{R}$. Define the <strong>score function</strong> as the gradient of the log-likelihood with respect to $\theta$:</p>
+
+\[s(x; \theta) = \frac{\partial}{\partial \theta} \log p(x; \theta)\]
+
+<p><strong>Key property — the score has zero mean:</strong></p>
+
+\[\mathbb{E}_{x \sim p(\cdot;\theta)}\left[s(x;\theta)\right] = 0\]
+
+<p><em>Proof:</em></p>
+
+\[\mathbb{E}\left[\frac{\partial}{\partial \theta} \log p(x;\theta)\right] = \int \frac{\partial \log p}{\partial \theta} \, p \, dx = \int \frac{1}{p} \frac{\partial p}{\partial \theta} p \, dx = \frac{\partial}{\partial \theta} \int p(x;\theta) \, dx = \frac{\partial}{\partial \theta} 1 = 0\]
+
+<p>(Under mild regularity conditions allowing differentiation inside the integral.)</p>
+
+<hr />
+
+<h3 id="12-definition-of-fisher-information">1.2 Definition of Fisher Information</h3>
+
+<p>The <strong>Fisher Information</strong> $\mathcal{I}(\theta)$ is the variance of the score:</p>
+
+\[\mathcal{I}(\theta) = \mathbb{E}\left[\left(\frac{\partial}{\partial \theta} \log p(x;\theta)\right)^2\right]\]
+
+<p>Since the score has zero mean, this is simply $\mathrm{Var}[s(x;\theta)]$.</p>
+
+<p><strong>Equivalent form via the Hessian of the log-likelihood:</strong></p>
+
+\[\mathcal{I}(\theta) = -\mathbb{E}\left[\frac{\partial^2}{\partial \theta^2} \log p(x;\theta)\right]\]
+
+<p><strong>Proof:</strong></p>
+
+<p>Differentiate the zero-mean identity again:</p>
+
+\[\frac{\partial}{\partial \theta} \int \frac{\partial \log p}{\partial \theta} \, p \, dx = 0\]
+
+\[\int \frac{\partial^2 \log p}{\partial \theta^2} p \, dx + \int \frac{\partial \log p}{\partial \theta} \frac{\partial p}{\partial \theta} dx = 0\]
+
+\[\mathbb{E}\left[\frac{\partial^2 \log p}{\partial \theta^2}\right] + \mathbb{E}\left[\left(\frac{\partial \log p}{\partial \theta}\right)^2\right] = 0\]
+
+\[\Rightarrow \mathcal{I}(\theta) = -\mathbb{E}\left[\frac{\partial^2 \log p}{\partial \theta^2}\right] \quad \blacksquare\]
+
+<hr />
+
+<h3 id="13-intuitive-example-gaussian-with-unknown-mean">1.3 Intuitive Example: Gaussian with Unknown Mean</h3>
+
+<p>Let $p(x;\mu) = \mathcal{N}(\mu, \sigma^2)$ with $\sigma^2$ known. Then:</p>
+
+\[\log p(x;\mu) = -\frac{(x-\mu)^2}{2\sigma^2} + \text{const}\]
+
+\[\frac{\partial \log p}{\partial \mu} = \frac{x - \mu}{\sigma^2}\]
+
+\[\mathcal{I}(\mu) = \mathbb{E}\left[\left(\frac{x-\mu}{\sigma^2}\right)^2\right] = \frac{\mathbb{E}[(x-\mu)^2]}{\sigma^4} = \frac{\sigma^2}{\sigma^4} = \frac{1}{\sigma^2}\]
+
+<p><strong>Intuition:</strong> A narrow Gaussian (small $\sigma^2$) has <strong>high</strong> Fisher Information — observations are very informative about $\mu$. A wide Gaussian (large $\sigma^2$) gives noisy observations with <strong>low</strong> Fisher Information.</p>
+
+<hr />
+
+<h3 id="14-the-cramérrao-bound">1.4 The Cramér–Rao Bound</h3>
+
+<p>Fisher Information directly lower-bounds the variance of any unbiased estimator $\hat{\theta}(x)$:</p>
+
+\[\mathrm{Var}[\hat{\theta}] \geq \frac{1}{\mathcal{I}(\theta)}\]
+
+<p><strong>Proof sketch via Cauchy–Schwarz:</strong></p>
+
+<p>Let $T = \hat{\theta}(x) - \theta$ (the estimation error). Since $\hat{\theta}$ is unbiased:</p>
+
+\[\mathbb{E}[T] = 0 \quad \text{and} \quad \mathbb{E}[T \cdot s] = \mathrm{Cov}(T, s) = \frac{\partial}{\partial \theta}\mathbb{E}[\hat{\theta}] = 1\]
+
+<p>By Cauchy–Schwarz:</p>
+
+\[1 = |\mathrm{Cov}(T, s)|^2 \leq \mathrm{Var}[T] \cdot \mathrm{Var}[s] = \mathrm{Var}[\hat{\theta}] \cdot \mathcal{I}(\theta)\]
+
+\[\Rightarrow \mathrm{Var}[\hat{\theta}] \geq \frac{1}{\mathcal{I}(\theta)} \quad \blacksquare\]
+
+<hr />
+
+<h3 id="15-the-fisher-information-matrix-multivariate">1.5 The Fisher Information Matrix (Multivariate)</h3>
+
+<p>For $\theta \in \mathbb{R}^d$, the <strong>Fisher Information Matrix (FIM)</strong> is:</p>
+
+\[F(\theta) = \mathbb{E}\left[\nabla_\theta \log p(x;\theta) \, \nabla_\theta \log p(x;\theta)^\top\right] \in \mathbb{R}^{d \times d}\]
+
+<p>Equivalently:</p>
+
+\[F_{ij}(\theta) = -\mathbb{E}\left[\frac{\partial^2 \log p(x;\theta)}{\partial \theta_i \partial \theta_j}\right]\]
+
+<p>$F(\theta)$ is symmetric positive semi-definite, and positive definite under identifiability.</p>
+
+<hr />
+
+<h3 id="16-fisher-information-as-a-riemannian-metric">1.6 Fisher Information as a Riemannian Metric</h3>
+
+<p>This is the key geometric insight. The <strong>KL divergence</strong> between $p(\cdot;\theta)$ and a nearby distribution $p(\cdot;\theta+d\theta)$ is:</p>
+
+\[\mathrm{KL}\!\left(p(\cdot;\theta) \,\|\, p(\cdot;\theta+d\theta)\right)\]
+
+<p>Expanding to second order in $d\theta$:</p>
+
+\[\mathrm{KL}\!\left(p_\theta \,\|\, p_{\theta+d\theta}\right) \approx \frac{1}{2} \, d\theta^\top F(\theta) \, d\theta\]
+
+<p><em>Proof:</em></p>
+
+\[\mathrm{KL}(p_\theta \| p_{\theta+d\theta}) = \mathbb{E}_{\theta}\left[\log p(x;\theta) - \log p(x;\theta+d\theta)\right]\]
+
+<p>Taylor-expand $\log p(x;\theta+d\theta)$:</p>
+
+\[\log p(x;\theta+d\theta) \approx \log p(x;\theta) + \nabla_\theta \log p \cdot d\theta + \frac{1}{2} d\theta^\top \nabla^2_\theta \log p \, d\theta\]
+
+<p>Taking the expectation and using $\mathbb{E}[\nabla_\theta \log p] = 0$:</p>
+
+\[\mathrm{KL} \approx -\frac{1}{2} d\theta^\top \, \mathbb{E}[\nabla^2_\theta \log p] \, d\theta = \frac{1}{2} d\theta^\top F(\theta) \, d\theta \quad \blacksquare\]
+
+<p>So $F(\theta)$ is the <strong>Riemannian metric tensor</strong> on the statistical manifold — it measures how far apart distributions are in information-geometric terms. This is why the FIM is fundamental to natural gradient methods.</p>
+
+<hr />
+
+<h3 id="17-natural-gradient">1.7 Natural Gradient</h3>
+
+<p>Vanilla gradient descent moves in Euclidean parameter space:</p>
+
+\[\theta \leftarrow \theta + \alpha \nabla_\theta \mathcal{L}\]
+
+<p>But parameter space is not Euclidean — equal Euclidean steps can produce very different distribution changes depending on the local curvature of $F(\theta)$.</p>
+
+<p>The <strong>natural gradient</strong> moves in distribution space:</p>
+
+\[\tilde{\nabla}_\theta \mathcal{L} = F(\theta)^{-1} \nabla_\theta \mathcal{L}\]
+
+<p>This is the steepest ascent direction under the constraint $d\theta^\top F(\theta) \, d\theta \leq \epsilon$ (a KL-ball), which follows from Lagrangian optimization:</p>
+
+\[\max_{d\theta} \; \nabla_\theta \mathcal{L}^\top d\theta \quad \text{s.t.} \quad d\theta^\top F \, d\theta \leq \epsilon\]
+
+<p>Lagrangian: $\nabla \mathcal{L}^\top d\theta - \lambda \, d\theta^\top F \, d\theta$</p>
+
+<p>Setting gradient to zero: $\nabla \mathcal{L} = 2\lambda F \, d\theta \Rightarrow d\theta \propto F^{-1} \nabla \mathcal{L}$.</p>
+
+<hr />
+
+<h2 id="part-2-policy-gradients--background">Part 2: Policy Gradients — Background</h2>
+
+<h3 id="21-the-rl-objective">2.1 The RL Objective</h3>
+
+<p>In reinforcement learning, a policy $\pi_\theta(a \mid s)$ interacts with an environment. The goal is to maximize expected discounted return:</p>
+
+\[J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^T \gamma^t r_t\right]\]
+
+<p>where $\tau = (s_0, a_0, s_1, a_1, \ldots)$ is a trajectory.</p>
+
+<h3 id="22-the-policy-gradient-theorem">2.2 The Policy Gradient Theorem</h3>
+
+\[\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t \mid s_t) \cdot A^{\pi_\theta}(s_t, a_t)\right]\]
+
+<p>where $A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)$ is the <strong>advantage function</strong>.</p>
+
+<p><em>Proof sketch:</em></p>
+
+\[\nabla_\theta J = \nabla_\theta \int p(\tau;\theta) R(\tau) \, d\tau = \int \nabla_\theta p(\tau;\theta) R(\tau) \, d\tau\]
+
+<p>Using the log-derivative trick $\nabla p = p \nabla \log p$:</p>
+
+\[= \mathbb{E}_{\tau \sim \pi_\theta}\left[R(\tau) \nabla_\theta \log p(\tau;\theta)\right]\]
+
+<p>Since $\log p(\tau;\theta) = \log p(s_0) + \sum_t \log \pi_\theta(a_t \mid s_t) + \log p(s_{t+1} \mid s_t, a_t)$, only the policy terms depend on $\theta$:</p>
+
+\[\nabla_\theta \log p(\tau;\theta) = \sum_t \nabla_\theta \log \pi_\theta(a_t \mid s_t)\]
+
+<p>Replacing $R(\tau)$ with the advantage (via causality and baseline subtraction) gives the final form. $\blacksquare$</p>
+
+<h3 id="23-the-problem-with-vanilla-policy-gradient">2.3 The Problem with Vanilla Policy Gradient</h3>
+
+<p>Vanilla policy gradient (REINFORCE, PPO without clipping) has no explicit control over how much the policy changes per update. A step that is too large can:</p>
+
+<ol>
+  <li>Catastrophically degrade the policy — and since the new policy collects the new data, recovery is slow.</li>
+  <li>Move so far that the importance-sampling assumption breaks down.</li>
+</ol>
+
+<p>This motivates <strong>trust region</strong> methods.</p>
+
+<hr />
+
+<h2 id="part-3-trpo">Part 3: TRPO</h2>
+
+<h3 id="31-the-surrogate-objective">3.1 The Surrogate Objective</h3>
+
+<p>Rather than differentiating $J(\theta)$ directly (which requires on-policy samples from the new policy), TRPO uses an <strong>importance-sampled surrogate</strong>:</p>
+
+\[L_{\theta_{\text{old}}}(\theta) = \mathbb{E}_{s,a \sim \pi_{\theta_{\text{old}}}}\left[\frac{\pi_\theta(a \mid s)}{\pi_{\theta_{\text{old}}}(a \mid s)} A^{\pi_{\theta_{\text{old}}}}(s, a)\right]\]
+
+<p>This is the expected advantage under the <strong>old</strong> policy, reweighted by the probability ratio $\rho(s,a;\theta) = \frac{\pi_\theta(a \mid s)}{\pi_{\theta_{\text{old}}}(a \mid s)}$.</p>
+
+<p><strong>Key property:</strong> $L_{\theta_{\text{old}}}(\theta_{\text{old}}) = J(\theta_{\text{old}})$ and $\nabla_\theta L_{\theta_{\text{old}}}(\theta)\big\vert_{\theta=\theta_{\text{old}}} = \nabla_\theta J(\theta)\big\vert_{\theta=\theta_{\text{old}}}$</p>
+
+<p>So locally, optimizing $L$ is equivalent to optimizing $J$.</p>
+
+<hr />
+
+<h3 id="32-the-trust-region-constraint">3.2 The Trust Region Constraint</h3>
+
+<p>The surrogate $L$ is only a reliable approximation near $\theta_{\text{old}}$. TRPO constrains the update so that the new policy doesn’t stray too far in distribution space:</p>
+
+\[\max_\theta \; L_{\theta_{\text{old}}}(\theta) \quad \text{subject to} \quad \bar{D}_{\mathrm{KL}}(\theta_{\text{old}}, \theta) \leq \delta\]
+
+<p>where</p>
+
+\[\bar{D}_{\mathrm{KL}}(\theta_{\text{old}}, \theta) = \mathbb{E}_{s \sim \rho^{\pi_{\theta_{\text{old}}}}}\left[\mathrm{KL}\!\left(\pi_{\theta_{\text{old}}}(\cdot \mid s) \,\|\, \pi_\theta(\cdot \mid s)\right)\right]\]
+
+<p>is the <strong>average KL divergence</strong> across the state distribution induced by the old policy.</p>
+
+<p>The hyperparameter $\delta$ (e.g., $0.01$) controls the trust region size.</p>
+
+<hr />
+
+<h3 id="33-theoretical-justification-monotonic-improvement">3.3 Theoretical Justification: Monotonic Improvement</h3>
+
+<p>Schulman et al. (2015) prove the following bound. Let $\alpha = \max_s D_{\mathrm{TV}}(\pi_{\text{old}}(\cdot \mid s), \pi(\cdot \mid s))$ (max total variation). Then:</p>
+
+\[J(\theta) \geq L_{\theta_{\text{old}}}(\theta) - \frac{4\epsilon\gamma}{(1-\gamma)^2} \alpha^2\]
+
+<p>where $\epsilon = \max_{s,a} \lvert A^\pi(s,a) \rvert$.</p>
+
+<p>Using $D_{\mathrm{TV}}^2 \leq \frac{1}{2} D_{\mathrm{KL}}$ (Pinsker’s inequality) and replacing TV with KL:</p>
+
+\[J(\theta) \geq L_{\theta_{\text{old}}}(\theta) - C \cdot \bar{D}_{\mathrm{KL}}(\theta_{\text{old}}, \theta)\]
+
+<p>where $C = \frac{4\epsilon\gamma}{(1-\gamma)^2}$.</p>
+
+<p>This means: <strong>as long as the surrogate objective increases by more than the KL penalty, the true objective $J$ is guaranteed to increase.</strong> The trust region constraint enforces this.</p>
+
+<hr />
+
+<h3 id="34-quadratic-approximation-of-the-kl-constraint">3.4 Quadratic Approximation of the KL Constraint</h3>
+
+<p>From Section 1.6, locally:</p>
+
+\[\bar{D}_{\mathrm{KL}}(\theta_{\text{old}}, \theta) \approx \frac{1}{2}(\theta - \theta_{\text{old}})^\top \hat{F} (\theta - \theta_{\text{old}})\]
+
+<p>where $\hat{F}$ is the <strong>empirical Fisher Information Matrix</strong> of the policy:</p>
+
+\[\hat{F} = \frac{1}{|D|}\sum_{s,a \in D} \nabla_\theta \log \pi_\theta(a \mid s) \, \nabla_\theta \log \pi_\theta(a \mid s)^\top \bigg|_{\theta = \theta_{\text{old}}}\]
+
+<p>The surrogate objective is approximated linearly:</p>
+
+\[L_{\theta_{\text{old}}}(\theta) \approx L_{\theta_{\text{old}}}(\theta_{\text{old}}) + g^\top (\theta - \theta_{\text{old}})\]
+
+<p>where $g = \nabla_\theta L_{\theta_{\text{old}}}(\theta)\big\vert_{\theta_{\text{old}}}$ (the policy gradient).</p>
+
+<hr />
+
+<h3 id="35-solving-the-constrained-quadratic-problem">3.5 Solving the Constrained Quadratic Problem</h3>
+
+<p>The subproblem becomes:</p>
+
+\[\max_{d\theta} \; g^\top d\theta \quad \text{s.t.} \quad \frac{1}{2} d\theta^\top \hat{F} \, d\theta \leq \delta\]
+
+<p>Form the Lagrangian:</p>
+
+\[\mathcal{L}(d\theta, \lambda) = g^\top d\theta - \lambda\left(\frac{1}{2} d\theta^\top \hat{F} \, d\theta - \delta\right)\]
+
+<p>KKT conditions:</p>
+
+\[\frac{\partial \mathcal{L}}{\partial d\theta} = g - \lambda \hat{F} \, d\theta = 0 \implies d\theta^* = \frac{1}{\lambda} \hat{F}^{-1} g\]
+
+<p>Substituting into the constraint to find $\lambda$:</p>
+
+\[\frac{1}{2} \cdot \frac{1}{\lambda^2} g^\top \hat{F}^{-1} g = \delta \implies \lambda = \sqrt{\frac{g^\top \hat{F}^{-1} g}{2\delta}}\]
+
+<p>The <strong>optimal update step</strong> is:</p>
+
+\[\boxed{d\theta^* = \sqrt{\frac{2\delta}{g^\top \hat{F}^{-1} g}} \cdot \hat{F}^{-1} g}\]
+
+<p>This is exactly the <strong>natural gradient</strong> direction, scaled to lie on the boundary of the KL trust region.</p>
+
+<hr />
+
+<h3 id="36-computing-hatf-1-g-via-conjugate-gradient">3.6 Computing $\hat{F}^{-1} g$ via Conjugate Gradient</h3>
+
+<p>For neural network policies, $\hat{F} \in \mathbb{R}^{d \times d}$ can have millions of parameters — storing and inverting it is infeasible. Instead, we note that we only need the <strong>vector $\hat{F}^{-1} g$</strong>, which is the solution to the linear system:</p>
+
+\[\hat{F} \, x = g\]
+
+<p>This is solved iteratively using <strong>Conjugate Gradient (CG)</strong>, which only requires the ability to compute matrix-vector products $\hat{F} v$ for arbitrary $v$.</p>
+
+<p><strong>Fisher-vector product (FVP):</strong> Rather than building $\hat{F}$ explicitly, compute $\hat{F} v$ using two backward passes:</p>
+
+\[\hat{F} v = \nabla_\theta \left[ \nabla_\theta \bar{D}_{\mathrm{KL}} \cdot v \right]\]
+
+<p>This is the <strong>Pearlmutter trick</strong>: differentiate through the gradient-dot-vector product. Cost is $O(d)$ — same as a single gradient computation.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">fisher_vector_product</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">):</span>
+    <span class="n">kl</span> <span class="o">=</span> <span class="nf">compute_mean_kl</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span>
+    <span class="n">grads</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">autograd</span><span class="p">.</span><span class="nf">grad</span><span class="p">(</span><span class="n">kl</span><span class="p">,</span> <span class="n">policy</span><span class="p">.</span><span class="nf">parameters</span><span class="p">(),</span> <span class="n">create_graph</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">flat_grads</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cat</span><span class="p">([</span><span class="n">g</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads</span><span class="p">])</span>
+    <span class="n">gvp</span> <span class="o">=</span> <span class="p">(</span><span class="n">flat_grads</span> <span class="o">*</span> <span class="n">v</span><span class="p">).</span><span class="nf">sum</span><span class="p">()</span>
+    <span class="n">fvp</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">autograd</span><span class="p">.</span><span class="nf">grad</span><span class="p">(</span><span class="n">gvp</span><span class="p">,</span> <span class="n">policy</span><span class="p">.</span><span class="nf">parameters</span><span class="p">())</span>
+    <span class="n">flat_fvp</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cat</span><span class="p">([</span><span class="n">f</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fvp</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">flat_fvp</span> <span class="o">+</span> <span class="n">damping</span> <span class="o">*</span> <span class="n">v</span>  <span class="c1"># damping for numerical stability
+</span></code></pre></div></div>
+
+<p>The damping term $\lambda_{\text{damp}} v$ adds a small ridge to $\hat{F}$, making it positive definite and the linear system well-conditioned.</p>
+
+<hr />
+
+<h3 id="37-backtracking-line-search">3.7 Backtracking Line Search</h3>
+
+<p>The quadratic approximation may not be tight enough, so after computing the proposed step $d\theta^*$, TRPO performs a <strong>backtracking line search</strong>. Starting from $k=0$ and shrinking by factor $\beta \in (0,1)$ (e.g. $\beta = 0.8$), it finds the largest $k$ such that both conditions hold:</p>
+
+<p><strong>Condition 1 — KL constraint satisfied:</strong></p>
+
+\[\bar{D}_{\mathrm{KL}}\!\left(\theta_{\text{old}},\, \theta_{\text{old}} + \beta^k d\theta^*\right) \leq \delta\]
+
+<p><strong>Condition 2 — surrogate objective improves:</strong></p>
+
+\[L_{\theta_{\text{old}}}\!\left(\theta_{\text{old}} + \beta^k d\theta^*\right) &gt; L_{\theta_{\text{old}}}\!\left(\theta_{\text{old}}\right)\]
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">line_search</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">theta_old</span><span class="p">,</span> <span class="n">step_dir</span><span class="p">,</span> <span class="n">max_backtracks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">max_backtracks</span><span class="p">):</span>
+        <span class="n">theta_new</span> <span class="o">=</span> <span class="n">theta_old</span> <span class="o">+</span> <span class="p">(</span><span class="n">beta</span> <span class="o">**</span> <span class="n">k</span><span class="p">)</span> <span class="o">*</span> <span class="n">step_dir</span>
+        <span class="k">if</span> <span class="nf">kl_ok</span><span class="p">(</span><span class="n">theta_new</span><span class="p">)</span> <span class="ow">and</span> <span class="nf">surrogate_improved</span><span class="p">(</span><span class="n">theta_new</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">theta_new</span>
+    <span class="k">return</span> <span class="n">theta_old</span>  <span class="c1"># reject update if no step works
+</span></code></pre></div></div>
+
+<hr />
+
+<h3 id="38-full-trpo-algorithm">3.8 Full TRPO Algorithm</h3>
+
+<div style="border: 1px solid #ccc; border-radius: 4px; padding: 1.2em 1.5em; margin: 1.5em 0; font-family: inherit;">
+<strong>Algorithm 1:</strong> Trust Region Policy Optimization (TRPO)
+<hr style="margin: 0.6em 0;" />
+<strong>Require:</strong> Initial policy parameters $\theta_0$, trust region radius $\delta &gt; 0$, CG iterations $K$, line search decay $\beta \in (0,1)$
+<br /><br />
+<strong>for</strong> $i = 0, 1, 2, \ldots$ <strong>do</strong>
+<ol style="margin: 0.5em 0 0.5em 1.5em;">
+  <li>Collect trajectories $\mathcal{D} = \{\tau_j\}$ by executing $\pi_{\theta_i}$ in the environment.</li>
+  <li>Estimate advantages $\hat{A}(s_t, a_t)$ using GAE or Monte Carlo returns.</li>
+  <li>Compute the policy gradient:
+    $$g \leftarrow \nabla_\theta L_{\theta_i}(\theta)\big\vert_{\theta_i}$$
+  </li>
+  <li>Approximate $x \approx \hat{F}^{-1}g$ by running $K$ steps of Conjugate Gradient on $\hat{F}x = g$, using Fisher-vector products via double backpropagation.</li>
+  <li>Compute the proposed natural gradient step:
+    $$d\theta^* \leftarrow \sqrt{\frac{2\delta}{g^\top x}} \cdot x$$
+  </li>
+  <li>Find the largest $j \in \{0,1,\ldots\}$ such that $\theta_i + \beta^j d\theta^*$ satisfies:
+    $$\bar{D}_{\mathrm{KL}}(\theta_i,\, \theta_i + \beta^j d\theta^*) \leq \delta \quad \text{and} \quad L_{\theta_i}(\theta_i + \beta^j d\theta^*) &gt; L_{\theta_i}(\theta_i)$$
+  </li>
+  <li>Update parameters:
+    $$\theta_{i+1} \leftarrow \theta_i + \beta^j d\theta^*$$
+  </li>
+</ol>
+<strong>end for</strong>
+</div>
+
+<hr />
+
+<h2 id="part-4-worked-example--gaussian-policy">Part 4: Worked Example — Gaussian Policy</h2>
+
+<p>To make this concrete, consider a continuous action space with a Gaussian policy:</p>
+
+\[\pi_\theta(a \mid s) = \mathcal{N}(\mu_\theta(s),\, \sigma^2 I)\]
+
+<p>where $\mu_\theta(s)$ is a neural network output and $\sigma$ is a fixed standard deviation.</p>
+
+<h3 id="log-policy-and-score">Log-policy and Score</h3>
+
+\[\log \pi_\theta(a \mid s) = -\frac{\|a - \mu_\theta(s)\|^2}{2\sigma^2} + \text{const}\]
+
+\[\nabla_\theta \log \pi_\theta(a \mid s) = \frac{a - \mu_\theta(s)}{\sigma^2} \cdot \nabla_\theta \mu_\theta(s)\]
+
+<h3 id="kl-divergence-closed-form">KL Divergence (Closed Form)</h3>
+
+<p>For two Gaussians with the same $\sigma$:</p>
+
+\[\mathrm{KL}\!\left(\mathcal{N}(\mu_1, \sigma^2) \| \mathcal{N}(\mu_2, \sigma^2)\right) = \frac{\|\mu_1 - \mu_2\|^2}{2\sigma^2}\]
+
+<p>So the average KL constraint becomes:</p>
+
+\[\bar{D}_{\mathrm{KL}} = \frac{1}{2\sigma^2}\mathbb{E}_s\left[\|\mu_{\theta_{\text{old}}}(s) - \mu_\theta(s)\|^2\right] \leq \delta\]
+
+<p>This is simply bounding the mean squared change in policy outputs — an intuitive constraint.</p>
+
+<h3 id="fisher-matrix">Fisher Matrix</h3>
+
+\[F(\theta) = \frac{1}{\sigma^2} \mathbb{E}_s\left[J_\mu(s)^\top J_\mu(s)\right]\]
+
+<p>where $J_\mu(s) = \nabla_\theta \mu_\theta(s) \in \mathbb{R}^{d_a \times d_\theta}$ is the Jacobian of the mean output. The FIM is the expected Gramian of the policy Jacobian, scaled by the inverse variance.</p>
+
+<hr />
+
+<h2 id="part-5-intuitions-and-practical-notes">Part 5: Intuitions and Practical Notes</h2>
+
+<h3 id="why-kl-and-not-l2-in-parameter-space">Why KL and Not L2 in Parameter Space?</h3>
+
+<p>Consider two parameters $\theta_1, \theta_2$ that differ by $\epsilon$ in L2 norm. In flat regions of the loss landscape, this induces negligible distribution change; in sharp regions, the same $\epsilon$ step might completely change the policy. The KL constraint adapts to the local geometry — it is $\epsilon$-invariant to reparameterization.</p>
+
+<p><strong>Example:</strong> A softmax policy with logits $[0, 0]$ vs $[5, -5]$ — an L2 step of $0.1$ has a wildly different effect on the distribution depending on where you are. The FIM accounts for this.</p>
+
+<h3 id="why-conjugate-gradient-instead-of-direct-inversion">Why Conjugate Gradient Instead of Direct Inversion?</h3>
+
+<p>For a network with $d = 10^6$ parameters, $\hat{F} \in \mathbb{R}^{10^6 \times 10^6}$ requires $\sim 4$ TB of memory and $O(d^3)$ to invert. CG with $K = 10$ steps costs $O(Kd)$ and produces a good approximate solution — the FVP trick makes each step cheap.</p>
+
+<h3 id="trpo-vs-ppo">TRPO vs PPO</h3>
+
+<p>PPO (Proximal Policy Optimization) replaces the hard KL constraint with a <strong>clipped</strong> surrogate:</p>
+
+\[L^{\mathrm{CLIP}}(\theta) = \mathbb{E}\left[\min\left(\rho \hat{A},\; \mathrm{clip}(\rho, 1-\varepsilon, 1+\varepsilon) \hat{A}\right)\right]\]
+
+<p>PPO is simpler (no CG, no FVP, no line search) and often performs comparably to TRPO in practice, which is why it became the de-facto standard. But TRPO provides stronger theoretical guarantees and is preferable when monotonic improvement is critical (e.g., in fine-tuning or safety-constrained settings).</p>
+
+<h3 id="practical-hyperparameters">Practical Hyperparameters</h3>
+
+<ul>
+  <li><strong>$\delta$ (KL budget)</strong> — default <code class="language-plaintext highlighter-rouge">0.01</code>. Larger values allow faster but riskier updates.</li>
+  <li><strong>CG iterations</strong> — default <code class="language-plaintext highlighter-rouge">10</code>. More iterations give a better $\hat{F}^{-1}g$ approximation.</li>
+  <li><strong>CG damping</strong> — default <code class="language-plaintext highlighter-rouge">0.1</code>. Higher damping stabilises the solve but introduces bias.</li>
+  <li><strong>Line search $\beta$</strong> — default <code class="language-plaintext highlighter-rouge">0.8</code>. Backtrack factor applied per rejected step.</li>
+  <li><strong>Max backtracks</strong> — default <code class="language-plaintext highlighter-rouge">10</code>. Safety net; the update is rejected entirely if all steps fail.</li>
+  <li><strong>GAE $\lambda$</strong> — default <code class="language-plaintext highlighter-rouge">0.95</code>. Controls the bias-variance tradeoff in advantage estimation.</li>
+</ul>
+
+<hr />
+
+<h2 id="summary">Summary</h2>
+
+<p><strong>Score function</strong> — $\nabla_\theta \log \pi_\theta(a \mid s)$ — building block of the FIM and policy gradient.</p>
+
+<p><strong>Fisher Information Matrix</strong> — $F = \mathbb{E}[\nabla \log \pi \, \nabla \log \pi^\top]$ — defines the KL geometry of the policy manifold.</p>
+
+<p><strong>Natural gradient</strong> — $F^{-1} g$ — the optimal update direction under a KL constraint.</p>
+
+<p><strong>Surrogate objective</strong> — $\mathbb{E}[\rho \hat{A}]$ — tractable importance-sampled proxy for $J(\theta)$.</p>
+
+<p><strong>Trust region</strong> — $\bar{D}_{\mathrm{KL}} \leq \delta$ — ensures the surrogate remains a reliable approximation of the true objective.</p>
+
+<p><strong>Optimal step</strong> — $\sqrt{2\delta / g^\top F^{-1} g} \cdot F^{-1} g$ — closed-form TRPO update derived from the constrained quadratic.</p>
+
+<p><strong>CG + FVP</strong> — $Fv$ via double backprop — makes natural gradient feasible for large networks without ever forming $F$ explicitly.</p>
+
+<p>The key takeaway: <strong>TRPO is natural gradient descent with a principled step size</strong>, derived from the requirement that the policy distribution doesn’t change too much per update. Fisher Information provides the geometry that makes this possible.</p>
+
+<hr />
+
+<h2 id="references">References</h2>
+
+<ol>
+  <li>
+    <p>Schulman, John, Sergey Levine, Pieter Abbeel, Michael Jordan, and Philipp Moritz. “Trust Region Policy Optimization.” In <i>International Conference on Machine Learning</i>, pp. 1889–1897. PMLR, 2015.</p>
+  </li>
+  <li>
+    <p>Amari, Shun-Ichi. “Natural Gradient Works Efficiently in Learning.” <i>Neural Computation</i> 10, no. 2 (1998): 251–276.</p>
+  </li>
+  <li>
+    <p>Kakade, Sham M. “A Natural Policy Gradient.” In <i>Advances in Neural Information Processing Systems</i>, vol. 14, pp. 1531–1538. MIT Press, 2002.</p>
+  </li>
+  <li>
+    <p>Martens, James. “New Insights and Perspectives on the Natural Gradient Method.” <i>Journal of Machine Learning Research</i> 21, no. 146 (2020): 1–76.</p>
+  </li>
+  <li>
+    <p>Schulman, John, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. “Proximal Policy Optimization Algorithms.” <i>arXiv preprint</i> arXiv:1707.06347, 2017.</p>
+  </li>
+</ol>
+
+    </div>
+
+    
+    <footer class="post-footer">
+      <div class="post-tags">
+        <strong>Tags:</strong>
+        
+        <span class="tag">fisher-information</span>
+        
+        <span class="tag">TRPO</span>
+        
+        <span class="tag">natural-gradient</span>
+        
+        <span class="tag">policy-optimization</span>
+        
+        <span class="tag">math</span>
+        
+      </div>
+    </footer>
+    
+  </div>
+</article>
+
+  </main>
+
+  <footer class="site-footer">
+  <div class="container">
+    <div class="footer-content">
+      <p>&copy; 2026 Kinsight Labs. All rights reserved.</p>
+
+      <div class="social-links">
+        
+        <a href="https://github.com/kinsightlabs" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        
+        
+        <a href="https://linkedin.com/in/0" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+        </a>
+        
+        
+        <a href="mailto:your.email@domain.com" aria-label="Email">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </a>
+        
+        <a href="/feed.xml" aria-label="RSS Feed">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+
+
+  <script src="/assets/js/theme.js"></script>
+</body>
+</html>

@@ -1,0 +1,1182 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://kinsightlabs.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kinsightlabs.github.io/" rel="alternate" type="text/html" /><updated>2026-05-29T17:51:04+08:00</updated><id>https://kinsightlabs.github.io/feed.xml</id><title type="html">Kinsight Labs</title><subtitle>Academic researcher and developer specializing in Artificial Intelligence. This site showcases my research, projects, and technical writing.</subtitle><author><name>Kinsight Labs</name><email>your.email@domain.com</email></author><entry><title type="html">Trust Region Policy Optimization (TRPO): A Deep Dive</title><link href="https://kinsightlabs.github.io/reinforcement-learning/optimization/2026/05/29/trpo-deep-dive.html" rel="alternate" type="text/html" title="Trust Region Policy Optimization (TRPO): A Deep Dive" /><published>2026-05-29T00:00:00+08:00</published><updated>2026-05-29T00:00:00+08:00</updated><id>https://kinsightlabs.github.io/reinforcement-learning/optimization/2026/05/29/trpo-deep-dive</id><content type="html" xml:base="https://kinsightlabs.github.io/reinforcement-learning/optimization/2026/05/29/trpo-deep-dive.html"><![CDATA[<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#part-1-fisher-information">Part 1: Fisher Information</a>
+    <ul>
+      <li><a href="#11-the-score-function">1.1 The Score Function</a></li>
+      <li><a href="#12-definition-of-fisher-information">1.2 Definition of Fisher Information</a></li>
+      <li><a href="#13-intuitive-example-gaussian-with-unknown-mean">1.3 Intuitive Example: Gaussian with Unknown Mean</a></li>
+      <li><a href="#14-the-cramrrao-bound">1.4 The Cramér–Rao Bound</a></li>
+      <li><a href="#15-the-fisher-information-matrix-multivariate">1.5 The Fisher Information Matrix (Multivariate)</a></li>
+      <li><a href="#16-fisher-information-as-a-riemannian-metric">1.6 Fisher Information as a Riemannian Metric</a></li>
+      <li><a href="#17-natural-gradient">1.7 Natural Gradient</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-2-policy-gradients--background">Part 2: Policy Gradients — Background</a>
+    <ul>
+      <li><a href="#21-the-rl-objective">2.1 The RL Objective</a></li>
+      <li><a href="#22-the-policy-gradient-theorem">2.2 The Policy Gradient Theorem</a></li>
+      <li><a href="#23-the-problem-with-vanilla-policy-gradient">2.3 The Problem with Vanilla Policy Gradient</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-3-trpo">Part 3: TRPO</a>
+    <ul>
+      <li><a href="#31-the-surrogate-objective">3.1 The Surrogate Objective</a></li>
+      <li><a href="#32-the-trust-region-constraint">3.2 The Trust Region Constraint</a></li>
+      <li><a href="#33-theoretical-justification-monotonic-improvement">3.3 Theoretical Justification: Monotonic Improvement</a></li>
+      <li><a href="#34-quadratic-approximation-of-the-kl-constraint">3.4 Quadratic Approximation of the KL Constraint</a></li>
+      <li><a href="#35-solving-the-constrained-quadratic-problem">3.5 Solving the Constrained Quadratic Problem</a></li>
+      <li><a href="#36-computing-f1-g-via-conjugate-gradient">3.6 Computing F⁻¹g via Conjugate Gradient</a></li>
+      <li><a href="#37-backtracking-line-search">3.7 Backtracking Line Search</a></li>
+      <li><a href="#38-full-trpo-algorithm">3.8 Full TRPO Algorithm</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-4-worked-example--gaussian-policy">Part 4: Worked Example — Gaussian Policy</a></li>
+  <li><a href="#part-5-intuitions-and-practical-notes">Part 5: Intuitions and Practical Notes</a>
+    <ul>
+      <li><a href="#why-kl-and-not-l2-in-parameter-space">Why KL and Not L2 in Parameter Space?</a></li>
+      <li><a href="#why-conjugate-gradient-instead-of-direct-inversion">Why Conjugate Gradient Instead of Direct Inversion?</a></li>
+      <li><a href="#trpo-vs-ppo">TRPO vs PPO</a></li>
+      <li><a href="#practical-hyperparameters">Practical Hyperparameters</a></li>
+    </ul>
+  </li>
+  <li><a href="#summary">Summary</a></li>
+  <li><a href="#references">References</a></li>
+</ul>
+
+<hr />
+
+<h2 id="overview">Overview</h2>
+
+<p>Policy gradient methods are powerful, but they have a fundamental instability problem: a single bad update can collapse a policy, and because the agent then collects data under the broken policy, recovery is painfully slow. <strong>Trust Region Policy Optimization (TRPO)</strong> solves this by turning every update into a constrained optimization — maximizing a surrogate objective while guaranteeing the new policy stays close to the old one in a precise, information-geometric sense.</p>
+
+<p>To understand why TRPO works, you first need to understand <strong>Fisher Information</strong>. The Fisher Information Matrix (FIM) captures how much the output distribution of a model changes as its parameters move — it is the natural metric on the space of probability distributions. TRPO uses it to define “closeness” between policies in a way that is invariant to reparameterization, and to derive the optimal step direction via the natural gradient.</p>
+
+<p>This post builds both ideas from scratch:</p>
+
+<ul>
+  <li><strong>Part 1</strong> derives Fisher Information, the Cramér–Rao bound, the FIM as a Riemannian metric, and the natural gradient.</li>
+  <li><strong>Part 2</strong> reviews the policy gradient theorem and the instability that motivates trust regions.</li>
+  <li><strong>Part 3</strong> derives TRPO rigorously — the surrogate objective, the KL constraint, the monotonic improvement guarantee, and the closed-form optimal step via constrained quadratic optimization.</li>
+  <li><strong>Part 4</strong> works through a concrete Gaussian policy example.</li>
+  <li><strong>Part 5</strong> covers implementation details, TRPO vs PPO, and practical hyperparameters.</li>
+</ul>
+
+<p>Every non-trivial mathematical step is shown explicitly.</p>
+
+<p><strong>Prerequisites:</strong> multivariable calculus, basic probability, and a passing familiarity with policy gradients.</p>
+
+<hr />
+
+<h2 id="part-1-fisher-information">Part 1: Fisher Information</h2>
+
+<h3 id="11-the-score-function">1.1 The Score Function</h3>
+
+<p>Let $p(x; \theta)$ be a parametric probability distribution with parameter $\theta \in \mathbb{R}$. Define the <strong>score function</strong> as the gradient of the log-likelihood with respect to $\theta$:</p>
+
+\[s(x; \theta) = \frac{\partial}{\partial \theta} \log p(x; \theta)\]
+
+<p><strong>Key property — the score has zero mean:</strong></p>
+
+\[\mathbb{E}_{x \sim p(\cdot;\theta)}\left[s(x;\theta)\right] = 0\]
+
+<p><em>Proof:</em></p>
+
+\[\mathbb{E}\left[\frac{\partial}{\partial \theta} \log p(x;\theta)\right] = \int \frac{\partial \log p}{\partial \theta} \, p \, dx = \int \frac{1}{p} \frac{\partial p}{\partial \theta} p \, dx = \frac{\partial}{\partial \theta} \int p(x;\theta) \, dx = \frac{\partial}{\partial \theta} 1 = 0\]
+
+<p>(Under mild regularity conditions allowing differentiation inside the integral.)</p>
+
+<hr />
+
+<h3 id="12-definition-of-fisher-information">1.2 Definition of Fisher Information</h3>
+
+<p>The <strong>Fisher Information</strong> $\mathcal{I}(\theta)$ is the variance of the score:</p>
+
+\[\mathcal{I}(\theta) = \mathbb{E}\left[\left(\frac{\partial}{\partial \theta} \log p(x;\theta)\right)^2\right]\]
+
+<p>Since the score has zero mean, this is simply $\mathrm{Var}[s(x;\theta)]$.</p>
+
+<p><strong>Equivalent form via the Hessian of the log-likelihood:</strong></p>
+
+\[\mathcal{I}(\theta) = -\mathbb{E}\left[\frac{\partial^2}{\partial \theta^2} \log p(x;\theta)\right]\]
+
+<p><strong>Proof:</strong></p>
+
+<p>Differentiate the zero-mean identity again:</p>
+
+\[\frac{\partial}{\partial \theta} \int \frac{\partial \log p}{\partial \theta} \, p \, dx = 0\]
+
+\[\int \frac{\partial^2 \log p}{\partial \theta^2} p \, dx + \int \frac{\partial \log p}{\partial \theta} \frac{\partial p}{\partial \theta} dx = 0\]
+
+\[\mathbb{E}\left[\frac{\partial^2 \log p}{\partial \theta^2}\right] + \mathbb{E}\left[\left(\frac{\partial \log p}{\partial \theta}\right)^2\right] = 0\]
+
+\[\Rightarrow \mathcal{I}(\theta) = -\mathbb{E}\left[\frac{\partial^2 \log p}{\partial \theta^2}\right] \quad \blacksquare\]
+
+<hr />
+
+<h3 id="13-intuitive-example-gaussian-with-unknown-mean">1.3 Intuitive Example: Gaussian with Unknown Mean</h3>
+
+<p>Let $p(x;\mu) = \mathcal{N}(\mu, \sigma^2)$ with $\sigma^2$ known. Then:</p>
+
+\[\log p(x;\mu) = -\frac{(x-\mu)^2}{2\sigma^2} + \text{const}\]
+
+\[\frac{\partial \log p}{\partial \mu} = \frac{x - \mu}{\sigma^2}\]
+
+\[\mathcal{I}(\mu) = \mathbb{E}\left[\left(\frac{x-\mu}{\sigma^2}\right)^2\right] = \frac{\mathbb{E}[(x-\mu)^2]}{\sigma^4} = \frac{\sigma^2}{\sigma^4} = \frac{1}{\sigma^2}\]
+
+<p><strong>Intuition:</strong> A narrow Gaussian (small $\sigma^2$) has <strong>high</strong> Fisher Information — observations are very informative about $\mu$. A wide Gaussian (large $\sigma^2$) gives noisy observations with <strong>low</strong> Fisher Information.</p>
+
+<hr />
+
+<h3 id="14-the-cramérrao-bound">1.4 The Cramér–Rao Bound</h3>
+
+<p>Fisher Information directly lower-bounds the variance of any unbiased estimator $\hat{\theta}(x)$:</p>
+
+\[\mathrm{Var}[\hat{\theta}] \geq \frac{1}{\mathcal{I}(\theta)}\]
+
+<p><strong>Proof sketch via Cauchy–Schwarz:</strong></p>
+
+<p>Let $T = \hat{\theta}(x) - \theta$ (the estimation error). Since $\hat{\theta}$ is unbiased:</p>
+
+\[\mathbb{E}[T] = 0 \quad \text{and} \quad \mathbb{E}[T \cdot s] = \mathrm{Cov}(T, s) = \frac{\partial}{\partial \theta}\mathbb{E}[\hat{\theta}] = 1\]
+
+<p>By Cauchy–Schwarz:</p>
+
+\[1 = |\mathrm{Cov}(T, s)|^2 \leq \mathrm{Var}[T] \cdot \mathrm{Var}[s] = \mathrm{Var}[\hat{\theta}] \cdot \mathcal{I}(\theta)\]
+
+\[\Rightarrow \mathrm{Var}[\hat{\theta}] \geq \frac{1}{\mathcal{I}(\theta)} \quad \blacksquare\]
+
+<hr />
+
+<h3 id="15-the-fisher-information-matrix-multivariate">1.5 The Fisher Information Matrix (Multivariate)</h3>
+
+<p>For $\theta \in \mathbb{R}^d$, the <strong>Fisher Information Matrix (FIM)</strong> is:</p>
+
+\[F(\theta) = \mathbb{E}\left[\nabla_\theta \log p(x;\theta) \, \nabla_\theta \log p(x;\theta)^\top\right] \in \mathbb{R}^{d \times d}\]
+
+<p>Equivalently:</p>
+
+\[F_{ij}(\theta) = -\mathbb{E}\left[\frac{\partial^2 \log p(x;\theta)}{\partial \theta_i \partial \theta_j}\right]\]
+
+<p>$F(\theta)$ is symmetric positive semi-definite, and positive definite under identifiability.</p>
+
+<hr />
+
+<h3 id="16-fisher-information-as-a-riemannian-metric">1.6 Fisher Information as a Riemannian Metric</h3>
+
+<p>This is the key geometric insight. The <strong>KL divergence</strong> between $p(\cdot;\theta)$ and a nearby distribution $p(\cdot;\theta+d\theta)$ is:</p>
+
+\[\mathrm{KL}\!\left(p(\cdot;\theta) \,\|\, p(\cdot;\theta+d\theta)\right)\]
+
+<p>Expanding to second order in $d\theta$:</p>
+
+\[\mathrm{KL}\!\left(p_\theta \,\|\, p_{\theta+d\theta}\right) \approx \frac{1}{2} \, d\theta^\top F(\theta) \, d\theta\]
+
+<p><em>Proof:</em></p>
+
+\[\mathrm{KL}(p_\theta \| p_{\theta+d\theta}) = \mathbb{E}_{\theta}\left[\log p(x;\theta) - \log p(x;\theta+d\theta)\right]\]
+
+<p>Taylor-expand $\log p(x;\theta+d\theta)$:</p>
+
+\[\log p(x;\theta+d\theta) \approx \log p(x;\theta) + \nabla_\theta \log p \cdot d\theta + \frac{1}{2} d\theta^\top \nabla^2_\theta \log p \, d\theta\]
+
+<p>Taking the expectation and using $\mathbb{E}[\nabla_\theta \log p] = 0$:</p>
+
+\[\mathrm{KL} \approx -\frac{1}{2} d\theta^\top \, \mathbb{E}[\nabla^2_\theta \log p] \, d\theta = \frac{1}{2} d\theta^\top F(\theta) \, d\theta \quad \blacksquare\]
+
+<p>So $F(\theta)$ is the <strong>Riemannian metric tensor</strong> on the statistical manifold — it measures how far apart distributions are in information-geometric terms. This is why the FIM is fundamental to natural gradient methods.</p>
+
+<hr />
+
+<h3 id="17-natural-gradient">1.7 Natural Gradient</h3>
+
+<p>Vanilla gradient descent moves in Euclidean parameter space:</p>
+
+\[\theta \leftarrow \theta + \alpha \nabla_\theta \mathcal{L}\]
+
+<p>But parameter space is not Euclidean — equal Euclidean steps can produce very different distribution changes depending on the local curvature of $F(\theta)$.</p>
+
+<p>The <strong>natural gradient</strong> moves in distribution space:</p>
+
+\[\tilde{\nabla}_\theta \mathcal{L} = F(\theta)^{-1} \nabla_\theta \mathcal{L}\]
+
+<p>This is the steepest ascent direction under the constraint $d\theta^\top F(\theta) \, d\theta \leq \epsilon$ (a KL-ball), which follows from Lagrangian optimization:</p>
+
+\[\max_{d\theta} \; \nabla_\theta \mathcal{L}^\top d\theta \quad \text{s.t.} \quad d\theta^\top F \, d\theta \leq \epsilon\]
+
+<p>Lagrangian: $\nabla \mathcal{L}^\top d\theta - \lambda \, d\theta^\top F \, d\theta$</p>
+
+<p>Setting gradient to zero: $\nabla \mathcal{L} = 2\lambda F \, d\theta \Rightarrow d\theta \propto F^{-1} \nabla \mathcal{L}$.</p>
+
+<hr />
+
+<h2 id="part-2-policy-gradients--background">Part 2: Policy Gradients — Background</h2>
+
+<h3 id="21-the-rl-objective">2.1 The RL Objective</h3>
+
+<p>In reinforcement learning, a policy $\pi_\theta(a \mid s)$ interacts with an environment. The goal is to maximize expected discounted return:</p>
+
+\[J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^T \gamma^t r_t\right]\]
+
+<p>where $\tau = (s_0, a_0, s_1, a_1, \ldots)$ is a trajectory.</p>
+
+<h3 id="22-the-policy-gradient-theorem">2.2 The Policy Gradient Theorem</h3>
+
+\[\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t \mid s_t) \cdot A^{\pi_\theta}(s_t, a_t)\right]\]
+
+<p>where $A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)$ is the <strong>advantage function</strong>.</p>
+
+<p><em>Proof sketch:</em></p>
+
+\[\nabla_\theta J = \nabla_\theta \int p(\tau;\theta) R(\tau) \, d\tau = \int \nabla_\theta p(\tau;\theta) R(\tau) \, d\tau\]
+
+<p>Using the log-derivative trick $\nabla p = p \nabla \log p$:</p>
+
+\[= \mathbb{E}_{\tau \sim \pi_\theta}\left[R(\tau) \nabla_\theta \log p(\tau;\theta)\right]\]
+
+<p>Since $\log p(\tau;\theta) = \log p(s_0) + \sum_t \log \pi_\theta(a_t \mid s_t) + \log p(s_{t+1} \mid s_t, a_t)$, only the policy terms depend on $\theta$:</p>
+
+\[\nabla_\theta \log p(\tau;\theta) = \sum_t \nabla_\theta \log \pi_\theta(a_t \mid s_t)\]
+
+<p>Replacing $R(\tau)$ with the advantage (via causality and baseline subtraction) gives the final form. $\blacksquare$</p>
+
+<h3 id="23-the-problem-with-vanilla-policy-gradient">2.3 The Problem with Vanilla Policy Gradient</h3>
+
+<p>Vanilla policy gradient (REINFORCE, PPO without clipping) has no explicit control over how much the policy changes per update. A step that is too large can:</p>
+
+<ol>
+  <li>Catastrophically degrade the policy — and since the new policy collects the new data, recovery is slow.</li>
+  <li>Move so far that the importance-sampling assumption breaks down.</li>
+</ol>
+
+<p>This motivates <strong>trust region</strong> methods.</p>
+
+<hr />
+
+<h2 id="part-3-trpo">Part 3: TRPO</h2>
+
+<h3 id="31-the-surrogate-objective">3.1 The Surrogate Objective</h3>
+
+<p>Rather than differentiating $J(\theta)$ directly (which requires on-policy samples from the new policy), TRPO uses an <strong>importance-sampled surrogate</strong>:</p>
+
+\[L_{\theta_{\text{old}}}(\theta) = \mathbb{E}_{s,a \sim \pi_{\theta_{\text{old}}}}\left[\frac{\pi_\theta(a \mid s)}{\pi_{\theta_{\text{old}}}(a \mid s)} A^{\pi_{\theta_{\text{old}}}}(s, a)\right]\]
+
+<p>This is the expected advantage under the <strong>old</strong> policy, reweighted by the probability ratio $\rho(s,a;\theta) = \frac{\pi_\theta(a \mid s)}{\pi_{\theta_{\text{old}}}(a \mid s)}$.</p>
+
+<p><strong>Key property:</strong> $L_{\theta_{\text{old}}}(\theta_{\text{old}}) = J(\theta_{\text{old}})$ and $\nabla_\theta L_{\theta_{\text{old}}}(\theta)\big\vert_{\theta=\theta_{\text{old}}} = \nabla_\theta J(\theta)\big\vert_{\theta=\theta_{\text{old}}}$</p>
+
+<p>So locally, optimizing $L$ is equivalent to optimizing $J$.</p>
+
+<hr />
+
+<h3 id="32-the-trust-region-constraint">3.2 The Trust Region Constraint</h3>
+
+<p>The surrogate $L$ is only a reliable approximation near $\theta_{\text{old}}$. TRPO constrains the update so that the new policy doesn’t stray too far in distribution space:</p>
+
+\[\max_\theta \; L_{\theta_{\text{old}}}(\theta) \quad \text{subject to} \quad \bar{D}_{\mathrm{KL}}(\theta_{\text{old}}, \theta) \leq \delta\]
+
+<p>where</p>
+
+\[\bar{D}_{\mathrm{KL}}(\theta_{\text{old}}, \theta) = \mathbb{E}_{s \sim \rho^{\pi_{\theta_{\text{old}}}}}\left[\mathrm{KL}\!\left(\pi_{\theta_{\text{old}}}(\cdot \mid s) \,\|\, \pi_\theta(\cdot \mid s)\right)\right]\]
+
+<p>is the <strong>average KL divergence</strong> across the state distribution induced by the old policy.</p>
+
+<p>The hyperparameter $\delta$ (e.g., $0.01$) controls the trust region size.</p>
+
+<hr />
+
+<h3 id="33-theoretical-justification-monotonic-improvement">3.3 Theoretical Justification: Monotonic Improvement</h3>
+
+<p>Schulman et al. (2015) prove the following bound. Let $\alpha = \max_s D_{\mathrm{TV}}(\pi_{\text{old}}(\cdot \mid s), \pi(\cdot \mid s))$ (max total variation). Then:</p>
+
+\[J(\theta) \geq L_{\theta_{\text{old}}}(\theta) - \frac{4\epsilon\gamma}{(1-\gamma)^2} \alpha^2\]
+
+<p>where $\epsilon = \max_{s,a} \lvert A^\pi(s,a) \rvert$.</p>
+
+<p>Using $D_{\mathrm{TV}}^2 \leq \frac{1}{2} D_{\mathrm{KL}}$ (Pinsker’s inequality) and replacing TV with KL:</p>
+
+\[J(\theta) \geq L_{\theta_{\text{old}}}(\theta) - C \cdot \bar{D}_{\mathrm{KL}}(\theta_{\text{old}}, \theta)\]
+
+<p>where $C = \frac{4\epsilon\gamma}{(1-\gamma)^2}$.</p>
+
+<p>This means: <strong>as long as the surrogate objective increases by more than the KL penalty, the true objective $J$ is guaranteed to increase.</strong> The trust region constraint enforces this.</p>
+
+<hr />
+
+<h3 id="34-quadratic-approximation-of-the-kl-constraint">3.4 Quadratic Approximation of the KL Constraint</h3>
+
+<p>From Section 1.6, locally:</p>
+
+\[\bar{D}_{\mathrm{KL}}(\theta_{\text{old}}, \theta) \approx \frac{1}{2}(\theta - \theta_{\text{old}})^\top \hat{F} (\theta - \theta_{\text{old}})\]
+
+<p>where $\hat{F}$ is the <strong>empirical Fisher Information Matrix</strong> of the policy:</p>
+
+\[\hat{F} = \frac{1}{|D|}\sum_{s,a \in D} \nabla_\theta \log \pi_\theta(a \mid s) \, \nabla_\theta \log \pi_\theta(a \mid s)^\top \bigg|_{\theta = \theta_{\text{old}}}\]
+
+<p>The surrogate objective is approximated linearly:</p>
+
+\[L_{\theta_{\text{old}}}(\theta) \approx L_{\theta_{\text{old}}}(\theta_{\text{old}}) + g^\top (\theta - \theta_{\text{old}})\]
+
+<p>where $g = \nabla_\theta L_{\theta_{\text{old}}}(\theta)\big\vert_{\theta_{\text{old}}}$ (the policy gradient).</p>
+
+<hr />
+
+<h3 id="35-solving-the-constrained-quadratic-problem">3.5 Solving the Constrained Quadratic Problem</h3>
+
+<p>The subproblem becomes:</p>
+
+\[\max_{d\theta} \; g^\top d\theta \quad \text{s.t.} \quad \frac{1}{2} d\theta^\top \hat{F} \, d\theta \leq \delta\]
+
+<p>Form the Lagrangian:</p>
+
+\[\mathcal{L}(d\theta, \lambda) = g^\top d\theta - \lambda\left(\frac{1}{2} d\theta^\top \hat{F} \, d\theta - \delta\right)\]
+
+<p>KKT conditions:</p>
+
+\[\frac{\partial \mathcal{L}}{\partial d\theta} = g - \lambda \hat{F} \, d\theta = 0 \implies d\theta^* = \frac{1}{\lambda} \hat{F}^{-1} g\]
+
+<p>Substituting into the constraint to find $\lambda$:</p>
+
+\[\frac{1}{2} \cdot \frac{1}{\lambda^2} g^\top \hat{F}^{-1} g = \delta \implies \lambda = \sqrt{\frac{g^\top \hat{F}^{-1} g}{2\delta}}\]
+
+<p>The <strong>optimal update step</strong> is:</p>
+
+\[\boxed{d\theta^* = \sqrt{\frac{2\delta}{g^\top \hat{F}^{-1} g}} \cdot \hat{F}^{-1} g}\]
+
+<p>This is exactly the <strong>natural gradient</strong> direction, scaled to lie on the boundary of the KL trust region.</p>
+
+<hr />
+
+<h3 id="36-computing-hatf-1-g-via-conjugate-gradient">3.6 Computing $\hat{F}^{-1} g$ via Conjugate Gradient</h3>
+
+<p>For neural network policies, $\hat{F} \in \mathbb{R}^{d \times d}$ can have millions of parameters — storing and inverting it is infeasible. Instead, we note that we only need the <strong>vector $\hat{F}^{-1} g$</strong>, which is the solution to the linear system:</p>
+
+\[\hat{F} \, x = g\]
+
+<p>This is solved iteratively using <strong>Conjugate Gradient (CG)</strong>, which only requires the ability to compute matrix-vector products $\hat{F} v$ for arbitrary $v$.</p>
+
+<p><strong>Fisher-vector product (FVP):</strong> Rather than building $\hat{F}$ explicitly, compute $\hat{F} v$ using two backward passes:</p>
+
+\[\hat{F} v = \nabla_\theta \left[ \nabla_\theta \bar{D}_{\mathrm{KL}} \cdot v \right]\]
+
+<p>This is the <strong>Pearlmutter trick</strong>: differentiate through the gradient-dot-vector product. Cost is $O(d)$ — same as a single gradient computation.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">fisher_vector_product</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">):</span>
+    <span class="n">kl</span> <span class="o">=</span> <span class="nf">compute_mean_kl</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span>
+    <span class="n">grads</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">autograd</span><span class="p">.</span><span class="nf">grad</span><span class="p">(</span><span class="n">kl</span><span class="p">,</span> <span class="n">policy</span><span class="p">.</span><span class="nf">parameters</span><span class="p">(),</span> <span class="n">create_graph</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">flat_grads</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cat</span><span class="p">([</span><span class="n">g</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads</span><span class="p">])</span>
+    <span class="n">gvp</span> <span class="o">=</span> <span class="p">(</span><span class="n">flat_grads</span> <span class="o">*</span> <span class="n">v</span><span class="p">).</span><span class="nf">sum</span><span class="p">()</span>
+    <span class="n">fvp</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">autograd</span><span class="p">.</span><span class="nf">grad</span><span class="p">(</span><span class="n">gvp</span><span class="p">,</span> <span class="n">policy</span><span class="p">.</span><span class="nf">parameters</span><span class="p">())</span>
+    <span class="n">flat_fvp</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cat</span><span class="p">([</span><span class="n">f</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fvp</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">flat_fvp</span> <span class="o">+</span> <span class="n">damping</span> <span class="o">*</span> <span class="n">v</span>  <span class="c1"># damping for numerical stability
+</span></code></pre></div></div>
+
+<p>The damping term $\lambda_{\text{damp}} v$ adds a small ridge to $\hat{F}$, making it positive definite and the linear system well-conditioned.</p>
+
+<hr />
+
+<h3 id="37-backtracking-line-search">3.7 Backtracking Line Search</h3>
+
+<p>The quadratic approximation may not be tight enough, so after computing the proposed step $d\theta^*$, TRPO performs a <strong>backtracking line search</strong>. Starting from $k=0$ and shrinking by factor $\beta \in (0,1)$ (e.g. $\beta = 0.8$), it finds the largest $k$ such that both conditions hold:</p>
+
+<p><strong>Condition 1 — KL constraint satisfied:</strong></p>
+
+\[\bar{D}_{\mathrm{KL}}\!\left(\theta_{\text{old}},\, \theta_{\text{old}} + \beta^k d\theta^*\right) \leq \delta\]
+
+<p><strong>Condition 2 — surrogate objective improves:</strong></p>
+
+\[L_{\theta_{\text{old}}}\!\left(\theta_{\text{old}} + \beta^k d\theta^*\right) &gt; L_{\theta_{\text{old}}}\!\left(\theta_{\text{old}}\right)\]
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">line_search</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">theta_old</span><span class="p">,</span> <span class="n">step_dir</span><span class="p">,</span> <span class="n">max_backtracks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">max_backtracks</span><span class="p">):</span>
+        <span class="n">theta_new</span> <span class="o">=</span> <span class="n">theta_old</span> <span class="o">+</span> <span class="p">(</span><span class="n">beta</span> <span class="o">**</span> <span class="n">k</span><span class="p">)</span> <span class="o">*</span> <span class="n">step_dir</span>
+        <span class="k">if</span> <span class="nf">kl_ok</span><span class="p">(</span><span class="n">theta_new</span><span class="p">)</span> <span class="ow">and</span> <span class="nf">surrogate_improved</span><span class="p">(</span><span class="n">theta_new</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">theta_new</span>
+    <span class="k">return</span> <span class="n">theta_old</span>  <span class="c1"># reject update if no step works
+</span></code></pre></div></div>
+
+<hr />
+
+<h3 id="38-full-trpo-algorithm">3.8 Full TRPO Algorithm</h3>
+
+<div style="border: 1px solid #ccc; border-radius: 4px; padding: 1.2em 1.5em; margin: 1.5em 0; font-family: inherit;">
+<strong>Algorithm 1:</strong> Trust Region Policy Optimization (TRPO)
+<hr style="margin: 0.6em 0;" />
+<strong>Require:</strong> Initial policy parameters $\theta_0$, trust region radius $\delta &gt; 0$, CG iterations $K$, line search decay $\beta \in (0,1)$
+<br /><br />
+<strong>for</strong> $i = 0, 1, 2, \ldots$ <strong>do</strong>
+<ol style="margin: 0.5em 0 0.5em 1.5em;">
+  <li>Collect trajectories $\mathcal{D} = \{\tau_j\}$ by executing $\pi_{\theta_i}$ in the environment.</li>
+  <li>Estimate advantages $\hat{A}(s_t, a_t)$ using GAE or Monte Carlo returns.</li>
+  <li>Compute the policy gradient:
+    $$g \leftarrow \nabla_\theta L_{\theta_i}(\theta)\big\vert_{\theta_i}$$
+  </li>
+  <li>Approximate $x \approx \hat{F}^{-1}g$ by running $K$ steps of Conjugate Gradient on $\hat{F}x = g$, using Fisher-vector products via double backpropagation.</li>
+  <li>Compute the proposed natural gradient step:
+    $$d\theta^* \leftarrow \sqrt{\frac{2\delta}{g^\top x}} \cdot x$$
+  </li>
+  <li>Find the largest $j \in \{0,1,\ldots\}$ such that $\theta_i + \beta^j d\theta^*$ satisfies:
+    $$\bar{D}_{\mathrm{KL}}(\theta_i,\, \theta_i + \beta^j d\theta^*) \leq \delta \quad \text{and} \quad L_{\theta_i}(\theta_i + \beta^j d\theta^*) &gt; L_{\theta_i}(\theta_i)$$
+  </li>
+  <li>Update parameters:
+    $$\theta_{i+1} \leftarrow \theta_i + \beta^j d\theta^*$$
+  </li>
+</ol>
+<strong>end for</strong>
+</div>
+
+<hr />
+
+<h2 id="part-4-worked-example--gaussian-policy">Part 4: Worked Example — Gaussian Policy</h2>
+
+<p>To make this concrete, consider a continuous action space with a Gaussian policy:</p>
+
+\[\pi_\theta(a \mid s) = \mathcal{N}(\mu_\theta(s),\, \sigma^2 I)\]
+
+<p>where $\mu_\theta(s)$ is a neural network output and $\sigma$ is a fixed standard deviation.</p>
+
+<h3 id="log-policy-and-score">Log-policy and Score</h3>
+
+\[\log \pi_\theta(a \mid s) = -\frac{\|a - \mu_\theta(s)\|^2}{2\sigma^2} + \text{const}\]
+
+\[\nabla_\theta \log \pi_\theta(a \mid s) = \frac{a - \mu_\theta(s)}{\sigma^2} \cdot \nabla_\theta \mu_\theta(s)\]
+
+<h3 id="kl-divergence-closed-form">KL Divergence (Closed Form)</h3>
+
+<p>For two Gaussians with the same $\sigma$:</p>
+
+\[\mathrm{KL}\!\left(\mathcal{N}(\mu_1, \sigma^2) \| \mathcal{N}(\mu_2, \sigma^2)\right) = \frac{\|\mu_1 - \mu_2\|^2}{2\sigma^2}\]
+
+<p>So the average KL constraint becomes:</p>
+
+\[\bar{D}_{\mathrm{KL}} = \frac{1}{2\sigma^2}\mathbb{E}_s\left[\|\mu_{\theta_{\text{old}}}(s) - \mu_\theta(s)\|^2\right] \leq \delta\]
+
+<p>This is simply bounding the mean squared change in policy outputs — an intuitive constraint.</p>
+
+<h3 id="fisher-matrix">Fisher Matrix</h3>
+
+\[F(\theta) = \frac{1}{\sigma^2} \mathbb{E}_s\left[J_\mu(s)^\top J_\mu(s)\right]\]
+
+<p>where $J_\mu(s) = \nabla_\theta \mu_\theta(s) \in \mathbb{R}^{d_a \times d_\theta}$ is the Jacobian of the mean output. The FIM is the expected Gramian of the policy Jacobian, scaled by the inverse variance.</p>
+
+<hr />
+
+<h2 id="part-5-intuitions-and-practical-notes">Part 5: Intuitions and Practical Notes</h2>
+
+<h3 id="why-kl-and-not-l2-in-parameter-space">Why KL and Not L2 in Parameter Space?</h3>
+
+<p>Consider two parameters $\theta_1, \theta_2$ that differ by $\epsilon$ in L2 norm. In flat regions of the loss landscape, this induces negligible distribution change; in sharp regions, the same $\epsilon$ step might completely change the policy. The KL constraint adapts to the local geometry — it is $\epsilon$-invariant to reparameterization.</p>
+
+<p><strong>Example:</strong> A softmax policy with logits $[0, 0]$ vs $[5, -5]$ — an L2 step of $0.1$ has a wildly different effect on the distribution depending on where you are. The FIM accounts for this.</p>
+
+<h3 id="why-conjugate-gradient-instead-of-direct-inversion">Why Conjugate Gradient Instead of Direct Inversion?</h3>
+
+<p>For a network with $d = 10^6$ parameters, $\hat{F} \in \mathbb{R}^{10^6 \times 10^6}$ requires $\sim 4$ TB of memory and $O(d^3)$ to invert. CG with $K = 10$ steps costs $O(Kd)$ and produces a good approximate solution — the FVP trick makes each step cheap.</p>
+
+<h3 id="trpo-vs-ppo">TRPO vs PPO</h3>
+
+<p>PPO (Proximal Policy Optimization) replaces the hard KL constraint with a <strong>clipped</strong> surrogate:</p>
+
+\[L^{\mathrm{CLIP}}(\theta) = \mathbb{E}\left[\min\left(\rho \hat{A},\; \mathrm{clip}(\rho, 1-\varepsilon, 1+\varepsilon) \hat{A}\right)\right]\]
+
+<p>PPO is simpler (no CG, no FVP, no line search) and often performs comparably to TRPO in practice, which is why it became the de-facto standard. But TRPO provides stronger theoretical guarantees and is preferable when monotonic improvement is critical (e.g., in fine-tuning or safety-constrained settings).</p>
+
+<h3 id="practical-hyperparameters">Practical Hyperparameters</h3>
+
+<ul>
+  <li><strong>$\delta$ (KL budget)</strong> — default <code class="language-plaintext highlighter-rouge">0.01</code>. Larger values allow faster but riskier updates.</li>
+  <li><strong>CG iterations</strong> — default <code class="language-plaintext highlighter-rouge">10</code>. More iterations give a better $\hat{F}^{-1}g$ approximation.</li>
+  <li><strong>CG damping</strong> — default <code class="language-plaintext highlighter-rouge">0.1</code>. Higher damping stabilises the solve but introduces bias.</li>
+  <li><strong>Line search $\beta$</strong> — default <code class="language-plaintext highlighter-rouge">0.8</code>. Backtrack factor applied per rejected step.</li>
+  <li><strong>Max backtracks</strong> — default <code class="language-plaintext highlighter-rouge">10</code>. Safety net; the update is rejected entirely if all steps fail.</li>
+  <li><strong>GAE $\lambda$</strong> — default <code class="language-plaintext highlighter-rouge">0.95</code>. Controls the bias-variance tradeoff in advantage estimation.</li>
+</ul>
+
+<hr />
+
+<h2 id="summary">Summary</h2>
+
+<p><strong>Score function</strong> — $\nabla_\theta \log \pi_\theta(a \mid s)$ — building block of the FIM and policy gradient.</p>
+
+<p><strong>Fisher Information Matrix</strong> — $F = \mathbb{E}[\nabla \log \pi \, \nabla \log \pi^\top]$ — defines the KL geometry of the policy manifold.</p>
+
+<p><strong>Natural gradient</strong> — $F^{-1} g$ — the optimal update direction under a KL constraint.</p>
+
+<p><strong>Surrogate objective</strong> — $\mathbb{E}[\rho \hat{A}]$ — tractable importance-sampled proxy for $J(\theta)$.</p>
+
+<p><strong>Trust region</strong> — $\bar{D}_{\mathrm{KL}} \leq \delta$ — ensures the surrogate remains a reliable approximation of the true objective.</p>
+
+<p><strong>Optimal step</strong> — $\sqrt{2\delta / g^\top F^{-1} g} \cdot F^{-1} g$ — closed-form TRPO update derived from the constrained quadratic.</p>
+
+<p><strong>CG + FVP</strong> — $Fv$ via double backprop — makes natural gradient feasible for large networks without ever forming $F$ explicitly.</p>
+
+<p>The key takeaway: <strong>TRPO is natural gradient descent with a principled step size</strong>, derived from the requirement that the policy distribution doesn’t change too much per update. Fisher Information provides the geometry that makes this possible.</p>
+
+<hr />
+
+<h2 id="references">References</h2>
+
+<ol>
+  <li>
+    <p>Schulman, John, Sergey Levine, Pieter Abbeel, Michael Jordan, and Philipp Moritz. “Trust Region Policy Optimization.” In <i>International Conference on Machine Learning</i>, pp. 1889–1897. PMLR, 2015.</p>
+  </li>
+  <li>
+    <p>Amari, Shun-Ichi. “Natural Gradient Works Efficiently in Learning.” <i>Neural Computation</i> 10, no. 2 (1998): 251–276.</p>
+  </li>
+  <li>
+    <p>Kakade, Sham M. “A Natural Policy Gradient.” In <i>Advances in Neural Information Processing Systems</i>, vol. 14, pp. 1531–1538. MIT Press, 2002.</p>
+  </li>
+  <li>
+    <p>Martens, James. “New Insights and Perspectives on the Natural Gradient Method.” <i>Journal of Machine Learning Research</i> 21, no. 146 (2020): 1–76.</p>
+  </li>
+  <li>
+    <p>Schulman, John, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. “Proximal Policy Optimization Algorithms.” <i>arXiv preprint</i> arXiv:1707.06347, 2017.</p>
+  </li>
+</ol>]]></content><author><name>Kinsight Labs</name><email>your.email@domain.com</email></author><category term="reinforcement-learning" /><category term="optimization" /><category term="fisher-information" /><category term="TRPO" /><category term="natural-gradient" /><category term="policy-optimization" /><category term="math" /><summary type="html"><![CDATA[Table of Contents]]></summary></entry><entry><title type="html">Understanding Language Models: From N-grams to Large Language Models</title><link href="https://kinsightlabs.github.io/deep-learning/nlp/language-models/2026/03/14/language-models-comprehensive-guide.html" rel="alternate" type="text/html" title="Understanding Language Models: From N-grams to Large Language Models" /><published>2026-03-14T00:00:00+08:00</published><updated>2026-03-14T00:00:00+08:00</updated><id>https://kinsightlabs.github.io/deep-learning/nlp/language-models/2026/03/14/language-models-comprehensive-guide</id><content type="html" xml:base="https://kinsightlabs.github.io/deep-learning/nlp/language-models/2026/03/14/language-models-comprehensive-guide.html"><![CDATA[<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#part-1-what-is-a-language-model">Part 1: What is a Language Model?</a>
+    <ul>
+      <li><a href="#11-definition">1.1 Definition</a></li>
+      <li><a href="#12-historical-evolution">1.2 Historical Evolution</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-2-classical-n-gram-models">Part 2: Classical N-gram Models</a>
+    <ul>
+      <li><a href="#21-n-gram-probabilities">2.1 N-gram Probabilities</a></li>
+      <li><a href="#22-estimating-probabilities">2.2 Estimating Probabilities</a></li>
+      <li><a href="#23-the-sparsity-problem">2.3 The Sparsity Problem</a></li>
+      <li><a href="#24-smoothing-techniques">2.4 Smoothing Techniques</a></li>
+      <li><a href="#25-limitations">2.5 Limitations</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-3-neural-language-models">Part 3: Neural Language Models</a>
+    <ul>
+      <li><a href="#31-the-neural-approach">3.1 The Neural Approach</a></li>
+      <li><a href="#32-bengios-neural-language-model-2003">3.2 Bengio’s Neural Language Model (2003)</a></li>
+      <li><a href="#33-word-embeddings">3.3 Word Embeddings</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-4-recurrent-neural-network-language-models">Part 4: Recurrent Neural Network Language Models</a>
+    <ul>
+      <li><a href="#41-rnn-language-models">4.1 RNN Language Models</a></li>
+      <li><a href="#42-lstm-language-models">4.2 LSTM Language Models</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-5-transformer-language-models">Part 5: Transformer Language Models</a>
+    <ul>
+      <li><a href="#51-causal-self-attention">5.1 Causal Self-Attention</a></li>
+      <li><a href="#52-gpt-architecture">5.2 GPT Architecture</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-6-training-objectives">Part 6: Training Objectives</a>
+    <ul>
+      <li><a href="#61-cross-entropy-loss">6.1 Cross-Entropy Loss</a></li>
+      <li><a href="#62-perplexity">6.2 Perplexity</a></li>
+      <li><a href="#63-teacher-forcing">6.3 Teacher Forcing</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-7-decoding-strategies">Part 7: Decoding Strategies</a>
+    <ul>
+      <li><a href="#71-greedy-decoding">7.1 Greedy Decoding</a></li>
+      <li><a href="#72-beam-search">7.2 Beam Search</a></li>
+      <li><a href="#73-sampling-methods">7.3 Sampling Methods</a></li>
+      <li><a href="#74-temperature-scaling">7.4 Temperature Scaling</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-8-pre-training-and-fine-tuning">Part 8: Pre-training and Fine-tuning</a>
+    <ul>
+      <li><a href="#81-the-two-stage-paradigm">8.1 The Two-Stage Paradigm</a></li>
+      <li><a href="#82-fine-tuning-approaches">8.2 Fine-tuning Approaches</a></li>
+      <li><a href="#83-parameter-efficient-fine-tuning">8.3 Parameter-Efficient Fine-tuning</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-9-scaling-laws">Part 9: Scaling Laws</a>
+    <ul>
+      <li><a href="#91-power-law-scaling">9.1 Power-Law Scaling</a></li>
+      <li><a href="#92-chinchilla-scaling-laws">9.2 Chinchilla Scaling Laws</a></li>
+      <li><a href="#93-emergent-abilities">9.3 Emergent Abilities</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-10-modern-techniques">Part 10: Modern Techniques</a>
+    <ul>
+      <li><a href="#101-efficient-attention">10.1 Efficient Attention</a></li>
+      <li><a href="#102-mixture-of-experts">10.2 Mixture of Experts</a></li>
+      <li><a href="#103-retrieval-augmented-generation">10.3 Retrieval-Augmented Generation</a></li>
+    </ul>
+  </li>
+  <li><a href="#part-11-evaluation">Part 11: Evaluation</a>
+    <ul>
+      <li><a href="#111-intrinsic-metrics">11.1 Intrinsic Metrics</a></li>
+      <li><a href="#112-benchmark-suites">11.2 Benchmark Suites</a></li>
+    </ul>
+  </li>
+  <li><a href="#summary">Summary</a></li>
+  <li><a href="#references">References</a></li>
+</ul>
+
+<hr />
+
+<h2 id="overview">Overview</h2>
+
+<p>Language models are the foundation of modern natural language processing. From autocomplete on your phone to ChatGPT, they power systems that understand and generate human language. At their core, they answer a deceptively simple question: <em>how likely is this sequence of words?</em> This single task — estimating probability distributions over text — has unlocked capabilities that would have seemed impossible a decade ago.</p>
+
+<p>This post traces the full arc from classical statistical methods to the massive transformer-based systems reshaping AI today:</p>
+
+<ul>
+  <li><strong>Part 1</strong> establishes the mathematical definition of a language model and its historical context.</li>
+  <li><strong>Parts 2–5</strong> trace the architectural evolution: n-grams → neural LMs → RNNs → transformers.</li>
+  <li><strong>Part 6</strong> covers training objectives, including cross-entropy loss and perplexity.</li>
+  <li><strong>Part 7</strong> surveys decoding strategies: greedy, beam search, top-k, nucleus sampling.</li>
+  <li><strong>Part 8</strong> covers the pre-training and fine-tuning paradigm, including RLHF and LoRA.</li>
+  <li><strong>Part 9</strong> derives the empirical scaling laws governing modern LLMs.</li>
+  <li><strong>Parts 10–11</strong> cover modern techniques and evaluation methods.</li>
+</ul>
+
+<p><strong>Prerequisites:</strong> basic probability, familiarity with neural networks.</p>
+
+<hr />
+
+<h2 id="part-1-what-is-a-language-model">Part 1: What is a Language Model?</h2>
+
+<h3 id="11-definition">1.1 Definition</h3>
+
+<p>A <strong>language model</strong> is a probability distribution over sequences of tokens. Given a sequence $w_1, w_2, \ldots, w_n$, it computes:</p>
+
+\[P(w_1, w_2, \ldots, w_n)\]
+
+<p>Applying the chain rule of probability:</p>
+
+\[P(w_1, \ldots, w_n) = \prod_{i=1}^{n} P(w_i \mid w_1, \ldots, w_{i-1})\]
+
+<p><strong>The core task:</strong> predict the next token given all previous tokens. A model that does this well necessarily learns grammar, facts, reasoning patterns, and much more — because all of these are reflected in which continuations are probable.</p>
+
+<h3 id="12-historical-evolution">1.2 Historical Evolution</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1950s   Rule-based systems
+1980s   Statistical methods, n-grams
+1990s   Maximum entropy models
+2000s   Neural language models (Bengio 2003)
+2010s   RNN/LSTM language models
+2013    Word2Vec embeddings
+2017    Transformers ("Attention is All You Need")
+2018    BERT, GPT — the pre-training revolution
+2020    GPT-3 (175B parameters)
+2022    ChatGPT (RLHF)
+2023    GPT-4 (multimodal)
+2024+   Scaling continues...
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="part-2-classical-n-gram-models">Part 2: Classical N-gram Models</h2>
+
+<h3 id="21-n-gram-probabilities">2.1 N-gram Probabilities</h3>
+
+<p>An <strong>n-gram</strong> is a sequence of $n$ consecutive tokens. The <strong>Markov assumption</strong> truncates the conditioning history to the previous $n-1$ words:</p>
+
+<p><strong>Bigram model:</strong></p>
+
+\[P(w_i \mid w_1, \ldots, w_{i-1}) \approx P(w_i \mid w_{i-1})\]
+
+<p><strong>Trigram model:</strong></p>
+
+\[P(w_i \mid w_1, \ldots, w_{i-1}) \approx P(w_i \mid w_{i-2}, w_{i-1})\]
+
+<h3 id="22-estimating-probabilities">2.2 Estimating Probabilities</h3>
+
+<p><strong>Maximum Likelihood Estimation (MLE)</strong> for a bigram model:</p>
+
+\[P(w_i \mid w_{i-1}) = \frac{C(w_{i-1},\, w_i)}{C(w_{i-1})}\]
+
+<p>where $C(\cdot)$ denotes corpus count.</p>
+
+<p><strong>Example:</strong> Given the corpus <code class="language-plaintext highlighter-rouge">"the cat sat on the mat the cat"</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>C("the cat") = 2,  C("the") = 3
+P("cat" | "the") = 2/3 ≈ 0.67
+</code></pre></div></div>
+
+<h3 id="23-the-sparsity-problem">2.3 The Sparsity Problem</h3>
+
+<p>Most n-grams never appear in training data. For a vocabulary of 100,000 words, there are $10^{15}$ possible trigrams, but a typical corpus contains only $\sim 10^9$ tokens. MLE assigns zero probability to the vast majority of grammatically valid sequences — a fundamental failure mode.</p>
+
+<h3 id="24-smoothing-techniques">2.4 Smoothing Techniques</h3>
+
+<p><strong>Laplace (add-one) smoothing</strong> adds a pseudo-count to every n-gram:</p>
+
+\[P_{\text{smooth}}(w_i \mid w_{i-1}) = \frac{C(w_{i-1}, w_i) + 1}{C(w_{i-1}) + V}\]
+
+<p>where $V$ is the vocabulary size.</p>
+
+<p><strong>Kneser-Ney smoothing</strong> — more sophisticated: it considers how many distinct contexts a word appears in, capturing the notion that <em>Francisco</em> is common but almost always follows <em>San</em>, so its standalone continuation probability should be low:</p>
+
+\[P_{KN}(w_i \mid w_{i-1}) = \frac{\max(C(w_{i-1}, w_i) - d,\; 0)}{C(w_{i-1})} + \lambda(w_{i-1})\, P_{\text{continuation}}(w_i)\]
+
+<p>where $d$ is a discount and $\lambda$ is a normalization factor ensuring the distribution sums to 1.</p>
+
+<h3 id="25-limitations">2.5 Limitations</h3>
+
+<p>N-gram models suffer from four structural problems:</p>
+
+<ol>
+  <li><strong>Sparsity</strong> — zero probability for unseen n-grams, even with smoothing.</li>
+  <li><strong>Limited context</strong> — only the previous $n-1$ words are considered.</li>
+  <li><strong>No generalization</strong> — “cat on mat” and “dog on rug” are entirely unrelated.</li>
+  <li><strong>No semantics</strong> — words are discrete symbols with no notion of similarity.</li>
+</ol>
+
+<p>These limitations motivate the neural approach.</p>
+
+<hr />
+
+<h2 id="part-3-neural-language-models">Part 3: Neural Language Models</h2>
+
+<h3 id="31-the-neural-approach">3.1 The Neural Approach</h3>
+
+<p>The key idea: represent words as continuous vectors (embeddings) and use a neural network to predict the next word. This enables <strong>generalization</strong> — similar words have similar embeddings, so knowledge about “cat” transfers to “dog”.</p>
+
+<h3 id="32-bengios-neural-language-model-2003">3.2 Bengio’s Neural Language Model (2003)</h3>
+
+<p><strong>Architecture:</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Input: previous n-1 word indices
+    ↓
+Embedding lookup → concatenate vectors
+    ↓
+Hidden layer (tanh)
+    ↓
+Output layer (softmax over vocabulary)
+</code></pre></div></div>
+
+<p><strong>Mathematical formulation:</strong></p>
+
+\[\mathbf{h} = \tanh\!\left(W_h\,[\mathbf{e}_{w_1};\, \mathbf{e}_{w_2};\, \ldots;\, \mathbf{e}_{w_{n-1}}] + \mathbf{b}_h\right)\]
+
+\[P(w_n \mid w_1, \ldots, w_{n-1}) = \text{softmax}(W_o\,\mathbf{h} + \mathbf{b}_o)\]
+
+<p>This was a proof of concept. The context was still fixed at $n-1$ tokens, but for the first time the model could generalize across semantically similar inputs.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">NeuralLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">context_size</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">embed_dim</span> <span class="o">*</span> <span class="n">context_size</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">embeds</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">).</span><span class="nf">view</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tanh</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="nf">fc1</span><span class="p">(</span><span class="n">embeds</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc2</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="33-word-embeddings">3.3 Word Embeddings</h3>
+
+<p>Each word is a dense vector in $\mathbb{R}^d$ (typically $d = 50$–$300$), learned from data. The geometry of this space captures semantic and syntactic relationships.</p>
+
+<p><strong>Famous example (Word2Vec):</strong></p>
+
+\[\text{king} - \text{man} + \text{woman} \approx \text{queen}\]
+
+<p>Embeddings are now universally used as the input layer of language models.</p>
+
+<hr />
+
+<h2 id="part-4-recurrent-neural-network-language-models">Part 4: Recurrent Neural Network Language Models</h2>
+
+<h3 id="41-rnn-language-models">4.1 RNN Language Models</h3>
+
+<p><strong>Key innovation:</strong> process sequences one token at a time, carrying a hidden state $\mathbf{h}_t$ that summarizes all previous context.</p>
+
+\[\mathbf{h}_t = \tanh(W_{hh}\,\mathbf{h}_{t-1} + W_{xh}\,\mathbf{e}_{w_t} + \mathbf{b}_h)\]
+
+\[P(w_{t+1} \mid w_1, \ldots, w_t) = \text{softmax}(W_{oh}\,\mathbf{h}_t + \mathbf{b}_o)\]
+
+<p>In principle, $\mathbf{h}_t$ can carry information from arbitrarily far back. In practice, vanilla RNNs suffer from vanishing gradients and forget long-range dependencies.</p>
+
+<h3 id="42-lstm-language-models">4.2 LSTM Language Models</h3>
+
+<p>Long Short-Term Memory (LSTM) units add explicit gating to control what information is retained, updated, or forgotten:</p>
+
+\[\mathbf{f}_t = \sigma(W_f[\mathbf{h}_{t-1};\, \mathbf{x}_t] + \mathbf{b}_f) \quad \text{(forget gate)}\]
+
+\[\mathbf{i}_t = \sigma(W_i[\mathbf{h}_{t-1};\, \mathbf{x}_t] + \mathbf{b}_i) \quad \text{(input gate)}\]
+
+\[\tilde{\mathbf{c}}_t = \tanh(W_c[\mathbf{h}_{t-1};\, \mathbf{x}_t] + \mathbf{b}_c) \quad \text{(candidate cell state)}\]
+
+\[\mathbf{c}_t = \mathbf{f}_t \odot \mathbf{c}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{c}}_t \quad \text{(cell state update)}\]
+
+\[\mathbf{o}_t = \sigma(W_o[\mathbf{h}_{t-1};\, \mathbf{x}_t] + \mathbf{b}_o) \quad \text{(output gate)}\]
+
+\[\mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{c}_t) \quad \text{(hidden state)}\]
+
+<p>The cell state $\mathbf{c}_t$ acts as a long-range memory — gradients can flow through it unchanged over many steps, resolving the vanishing gradient problem.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">LSTMLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">lstm</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">LSTM</span><span class="p">(</span><span class="n">embed_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span>
+                            <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">embeds</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">lstm_out</span><span class="p">,</span> <span class="n">hidden</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">lstm</span><span class="p">(</span><span class="n">embeds</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc</span><span class="p">(</span><span class="n">lstm_out</span><span class="p">),</span> <span class="n">hidden</span>
+</code></pre></div></div>
+
+<p><strong>Remaining limitations:</strong> sequential processing prevents parallelism; attention still degrades over very long contexts; there is an information bottleneck in the fixed-size hidden state.</p>
+
+<hr />
+
+<h2 id="part-5-transformer-language-models">Part 5: Transformer Language Models</h2>
+
+<h3 id="51-causal-self-attention">5.1 Causal Self-Attention</h3>
+
+<p>Introduced in Vaswani et al. (2017), the transformer replaces recurrence with <strong>self-attention</strong>, allowing every position to directly attend to every other position in parallel.</p>
+
+<p>For a <strong>decoder-only</strong> (causal) language model, position $i$ may only attend to positions $j \leq i$:</p>
+
+\[\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right) V\]
+
+<p>where $M$ is the causal mask:</p>
+
+\[M_{ij} = \begin{cases} 0 &amp; \text{if } i \geq j \\ -\infty &amp; \text{if } i &lt; j \end{cases}\]
+
+<p>Setting future positions to $-\infty$ zeroes them out after softmax, ensuring no information leaks from future tokens.</p>
+
+<h3 id="52-gpt-architecture">5.2 GPT Architecture</h3>
+
+<p>A <strong>decoder-only</strong> transformer stack with causal attention, pre-layer normalization, and residual connections.</p>
+
+<p>For input $\mathbf{x} = [x_1, \ldots, x_n]$:</p>
+
+\[\mathbf{h}_0 = \text{Embed}(\mathbf{x}) + \text{PosEmbed}\]
+
+\[\mathbf{h}_l = \text{TransformerBlock}_l(\mathbf{h}_{l-1}), \quad l = 1, \ldots, L\]
+
+\[P(x_{n+1} \mid x_1, \ldots, x_n) = \text{softmax}(W_e\, \mathbf{h}_L[n])\]
+
+<p>The weight matrix $W_e$ is typically tied to the token embedding matrix.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">GPTLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">dim_ff</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">token_embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">position_embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">max_len</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="n">decoder_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">TransformerDecoderLayer</span><span class="p">(</span>
+            <span class="n">d_model</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="o">=</span><span class="n">nhead</span><span class="p">,</span> <span class="n">dim_feedforward</span><span class="o">=</span><span class="n">dim_ff</span><span class="p">,</span>
+            <span class="n">dropout</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="sh">'</span><span class="s">gelu</span><span class="sh">'</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">norm_first</span><span class="o">=</span><span class="bp">True</span>
+        <span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">transformer</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">TransformerDecoder</span><span class="p">(</span><span class="n">decoder_layer</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">fc_out</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">shape</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">arange</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">x</span><span class="p">.</span><span class="n">device</span><span class="p">).</span><span class="nf">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">token_embedding</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="nf">position_embedding</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">triu</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">ones</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">x</span><span class="p">.</span><span class="n">device</span><span class="p">),</span> <span class="n">diagonal</span><span class="o">=</span><span class="mi">1</span><span class="p">).</span><span class="nf">bool</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">transformer</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">tgt_mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">fc_out</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Why transformers displaced RNNs:</strong></p>
+<ul>
+  <li>Full parallelism — all positions computed simultaneously during training.</li>
+  <li>Direct $O(1)$-hop connections between any two positions — no degradation with distance.</li>
+  <li>Better gradient flow — no sequential multiplicative chain.</li>
+  <li>Scales to billions of parameters without architectural changes.</li>
+</ul>
+
+<p><strong>Cost:</strong> $O(n^2)$ memory and compute in sequence length, though efficient attention variants address this (see Part 10).</p>
+
+<hr />
+
+<h2 id="part-6-training-objectives">Part 6: Training Objectives</h2>
+
+<h3 id="61-cross-entropy-loss">6.1 Cross-Entropy Loss</h3>
+
+<p>The standard objective is maximum likelihood — minimize the negative log-likelihood of the training tokens:</p>
+
+\[\mathcal{L}(\theta) = -\frac{1}{N} \sum_{i=1}^{N} \log P_\theta(w_i \mid w_1, \ldots, w_{i-1})\]
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+    <span class="c1"># logits: [B, T, V],  targets: [B, T]
+</span>    <span class="k">return</span> <span class="n">nn</span><span class="p">.</span><span class="nc">CrossEntropyLoss</span><span class="p">()(</span>
+        <span class="n">logits</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">logits</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+        <span class="n">targets</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="62-perplexity">6.2 Perplexity</h3>
+
+<p><strong>Perplexity</strong> is the exponential of the cross-entropy loss — it measures how “surprised” the model is by held-out text:</p>
+
+\[\text{PPL} = \exp\!\left(-\frac{1}{N}\sum_{i=1}^{N} \log P(w_i \mid w_1, \ldots, w_{i-1})\right)\]
+
+<p><strong>Interpretation:</strong> a perplexity of $k$ means the model is, on average, as uncertain as if choosing uniformly from $k$ words. Lower is better. Human-level perplexity on typical English text is roughly 10–20.</p>
+
+<h3 id="63-teacher-forcing">6.3 Teacher Forcing</h3>
+
+<p>During training, the model conditions on <strong>ground-truth</strong> previous tokens rather than its own predictions. This prevents error accumulation during training and makes the loss signal cleaner.</p>
+
+<p>At <strong>inference</strong>, the model generates autoregressively — each predicted token is appended to the context for the next step. This training/inference discrepancy (called <em>exposure bias</em>) is an active area of research.</p>
+
+<hr />
+
+<h2 id="part-7-decoding-strategies">Part 7: Decoding Strategies</h2>
+
+<h3 id="71-greedy-decoding">7.1 Greedy Decoding</h3>
+
+<p>Always select the most probable next token:</p>
+
+\[w_{t+1} = \arg\max_w P(w \mid w_1, \ldots, w_t)\]
+
+<p>Fast and deterministic, but often produces repetitive, generic text. Greedy locally optimal choices can lead to globally suboptimal sequences.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">greedy_decode</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">start_tokens</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">start_tokens</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">max_length</span><span class="p">):</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="nf">model</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+        <span class="n">next_token</span> <span class="o">=</span> <span class="n">logits</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:].</span><span class="nf">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cat</span><span class="p">([</span><span class="n">current</span><span class="p">,</span> <span class="n">next_token</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">current</span>
+</code></pre></div></div>
+
+<h3 id="72-beam-search">7.2 Beam Search</h3>
+
+<p>Maintain the top-$k$ most probable sequences at each step. The beam score applies a length penalty $\alpha$ to prevent favouring short outputs:</p>
+
+\[\text{score}(\mathbf{w}) = \frac{1}{|\mathbf{w}|^\alpha} \sum_{i=1}^{|\mathbf{w}|} \log P(w_i \mid w_1, \ldots, w_{i-1})\]
+
+<p>Beam search is effective for structured tasks (translation, summarization) where there is a canonical correct output, but can produce bland text for open-ended generation.</p>
+
+<h3 id="73-sampling-methods">7.3 Sampling Methods</h3>
+
+<p><strong>Top-$k$ sampling</strong> restricts sampling to the $k$ most probable tokens, discarding the long tail:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">top_k_sampling</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span> <span class="o">/</span> <span class="n">temperature</span>
+    <span class="n">topk_values</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">topk</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+    <span class="n">logits</span><span class="p">[</span><span class="n">logits</span> <span class="o">&lt;</span> <span class="n">topk_values</span><span class="p">[:,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]]</span> <span class="o">=</span> <span class="nf">float</span><span class="p">(</span><span class="sh">'</span><span class="s">-inf</span><span class="sh">'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="p">.</span><span class="nf">multinomial</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Top-$p$ (nucleus) sampling</strong> samples from the smallest set of tokens whose cumulative probability exceeds $p$. Unlike top-$k$, the set size adapts to the local distribution — when the model is confident it uses few tokens; when uncertain it uses more:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">top_p_sampling</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span> <span class="o">/</span> <span class="n">temperature</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sorted_probs</span><span class="p">,</span> <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">sort</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">descending</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cumsum</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cumsum</span><span class="p">(</span><span class="n">sorted_probs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Remove tokens beyond the nucleus
+</span>    <span class="n">sorted_probs</span><span class="p">[</span><span class="n">cumsum</span> <span class="o">-</span> <span class="n">sorted_probs</span> <span class="o">&gt;</span> <span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sorted_probs</span> <span class="o">/=</span> <span class="n">sorted_probs</span><span class="p">.</span><span class="nf">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sorted_indices</span><span class="p">.</span><span class="nf">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">torch</span><span class="p">.</span><span class="nf">multinomial</span><span class="p">(</span><span class="n">sorted_probs</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<h3 id="74-temperature-scaling">7.4 Temperature Scaling</h3>
+
+<p>Temperature $T$ controls the sharpness of the distribution before sampling:</p>
+
+\[P(w_i) = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}\]
+
+<ul>
+  <li>$T &lt; 1$: distribution peaks — more deterministic, less diverse.</li>
+  <li>$T = 1$: unmodified distribution.</li>
+  <li>$T &gt; 1$: flatter distribution — more random.</li>
+</ul>
+
+<p><strong>Best practice for open-ended generation:</strong> top-$p$ sampling with $p = 0.9$ and $T \in [0.7, 1.0]$.</p>
+
+<hr />
+
+<h2 id="part-8-pre-training-and-fine-tuning">Part 8: Pre-training and Fine-tuning</h2>
+
+<h3 id="81-the-two-stage-paradigm">8.1 The Two-Stage Paradigm</h3>
+
+<p>Modern language modelling follows a two-stage approach:</p>
+
+<ol>
+  <li><strong>Pre-training:</strong> train on a massive unlabelled corpus (300B+ tokens) to learn a general-purpose representation of language.</li>
+  <li><strong>Fine-tuning:</strong> adapt the pre-trained model to a specific task with a much smaller labelled dataset.</li>
+</ol>
+
+<p>This paradigm works because language modelling is an extraordinarily rich self-supervised signal — predicting the next word requires understanding syntax, semantics, facts, and reasoning.</p>
+
+<h3 id="82-fine-tuning-approaches">8.2 Fine-tuning Approaches</h3>
+
+<p><strong>Supervised fine-tuning (SFT):</strong> train on task-specific input-output pairs, typically for 3–5 epochs with a small learning rate ($\sim 10^{-5}$).</p>
+
+<p><strong>Instruction tuning:</strong> fine-tune on a large, diverse set of (instruction, response) pairs. The model learns to follow natural language instructions, generalizing to unseen tasks at inference time.</p>
+
+<p><strong>RLHF (Reinforcement Learning from Human Feedback):</strong></p>
+
+<ol>
+  <li>Collect human preference comparisons between model outputs.</li>
+  <li>Train a <strong>reward model</strong> $r_\phi$ to predict human preference.</li>
+  <li>Fine-tune the LM policy $\pi_\theta$ to maximize reward using PPO:</li>
+</ol>
+
+\[\mathcal{L}(\theta) = \mathbb{E}\!\left[\min\!\left(r_t(\theta)\hat{A}_t,\; \mathrm{clip}(r_t(\theta), 1-\varepsilon, 1+\varepsilon)\hat{A}_t\right)\right]\]
+
+<p>where $r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \mid s_t)}$ is the probability ratio and $\hat{A}_t$ is the advantage estimate. RLHF is responsible for the helpful, harmless, honest behaviour of ChatGPT and similar systems.</p>
+
+<h3 id="83-parameter-efficient-fine-tuning">8.3 Parameter-Efficient Fine-tuning</h3>
+
+<p>Fine-tuning all parameters of a large model is expensive. <strong>LoRA (Low-Rank Adaptation)</strong> instead adds a trainable low-rank perturbation to frozen pre-trained weights:</p>
+
+\[W' = W_0 + \Delta W = W_0 + BA\]
+
+<p>where $W_0 \in \mathbb{R}^{d \times d}$ is frozen, $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times d}$ are trainable, with rank $r \ll d$.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">LoRALayer</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">lora_A</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">randn</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.01</span><span class="p">)</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">lora_B</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="nf">zeros</span><span class="p">(</span><span class="n">rank</span><span class="p">,</span> <span class="n">out_features</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">W0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">F</span><span class="p">.</span><span class="nf">linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">W0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">@</span> <span class="n">self</span><span class="p">.</span><span class="n">lora_A</span><span class="p">)</span> <span class="o">@</span> <span class="n">self</span><span class="p">.</span><span class="n">lora_B</span>
+</code></pre></div></div>
+
+<p>LoRA trains only $\sim 0.1\%$ of the original parameters while matching full fine-tuning performance on most tasks.</p>
+
+<hr />
+
+<h2 id="part-9-scaling-laws">Part 9: Scaling Laws</h2>
+
+<h3 id="91-power-law-scaling">9.1 Power-Law Scaling</h3>
+
+<p>Kaplan et al. (2020) discovered that language model loss follows clean power laws in model size $N$ and data size $D$:</p>
+
+\[L(N, D) = \left(\frac{N_c}{N}\right)^{\alpha_N} + \left(\frac{D_c}{D}\right)^{\alpha_D}\]
+
+<p>where $\alpha_N \approx 0.076$ and $\alpha_D \approx 0.095$ are empirical exponents. Loss decreases predictably and smoothly — there are no discontinuities as models scale.</p>
+
+<p><strong>Key implication:</strong> given a fixed compute budget $C \approx 6ND$, one can predict ahead of time what loss a model will achieve, without running the experiment.</p>
+
+<h3 id="92-chinchilla-scaling-laws">9.2 Chinchilla Scaling Laws</h3>
+
+<p>Hoffmann et al. (2022) showed that prior work (including GPT-3) used oversized models trained on too little data. The <strong>compute-optimal</strong> allocation scales model size and data together:</p>
+
+\[N^* \propto C^{0.5}, \qquad D^* \propto C^{0.5}\]
+
+<p>The Chinchilla model (70B parameters, 1.4T tokens) outperformed Gopher (280B parameters, 300B tokens) at the same compute cost, validating this prescription.</p>
+
+<h3 id="93-emergent-abilities">9.3 Emergent Abilities</h3>
+
+<p>Beyond smooth scaling, certain capabilities appear <strong>abruptly</strong> at scale — they are near-zero below a threshold and suddenly usable above it:</p>
+
+<ul>
+  <li><strong>Few-shot learning</strong> emerges around 10B parameters.</li>
+  <li><strong>Chain-of-thought reasoning</strong> emerges around 100B parameters.</li>
+  <li><strong>Following complex multi-step instructions</strong> requires 100B+ parameters.</li>
+</ul>
+
+<p>This non-linearity means that scaling is not just “more of the same” — qualitatively new behaviour can emerge that was not predictable from smaller-scale experiments.</p>
+
+<hr />
+
+<h2 id="part-10-modern-techniques">Part 10: Modern Techniques</h2>
+
+<h3 id="101-efficient-attention">10.1 Efficient Attention</h3>
+
+<p>Standard self-attention is $O(n^2)$ in memory and time. Two prominent approaches address this:</p>
+
+<p><strong>Flash Attention</strong> (Dao et al., 2022) achieves exact attention with $O(n)$ memory by reordering the computation to maximise GPU SRAM reuse. It is 2–4× faster than standard attention with no approximation.</p>
+
+<p><strong>Sparse Attention</strong> restricts each token to attend only to a structured subset (e.g., local window + strided global tokens), reducing complexity to $O(n \sqrt{n})$ or $O(n \log n)$.</p>
+
+<h3 id="102-mixture-of-experts">10.2 Mixture of Experts</h3>
+
+<p><strong>MoE</strong> replaces each dense feed-forward layer with $n$ expert networks and a learned gating function:</p>
+
+\[\text{MoE}(\mathbf{x}) = \sum_{i=1}^{n} G(\mathbf{x})_i \cdot E_i(\mathbf{x})\]
+
+<p>Only the top-$k$ experts (typically $k=2$) are activated per token, so total parameters scale with $n$ but compute per token stays constant. GPT-4 and Mixtral use sparse MoE layers.</p>
+
+<h3 id="103-retrieval-augmented-generation">10.3 Retrieval-Augmented Generation</h3>
+
+<p><strong>RAG</strong> decouples parametric knowledge (stored in weights) from non-parametric knowledge (stored in a retrieval index). At inference time, relevant documents are retrieved and appended to the context:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">rag_generate</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">retriever</span><span class="p">,</span> <span class="n">lm</span><span class="p">):</span>
+    <span class="n">docs</span> <span class="o">=</span> <span class="n">retriever</span><span class="p">.</span><span class="nf">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="sh">"</span><span class="se">\n</span><span class="sh">"</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="n">doc</span><span class="p">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">)</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="sh">"</span><span class="s">Context:</span><span class="se">\n</span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="se">\n\n</span><span class="s">Question: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="se">\n\n</span><span class="s">Answer:</span><span class="sh">"</span>
+    <span class="k">return</span> <span class="n">lm</span><span class="p">.</span><span class="nf">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">),</span> <span class="n">docs</span>
+</code></pre></div></div>
+
+<p>RAG enables models to access up-to-date information without retraining, and to cite sources — directly addressing the hallucination problem.</p>
+
+<hr />
+
+<h2 id="part-11-evaluation">Part 11: Evaluation</h2>
+
+<h3 id="111-intrinsic-metrics">11.1 Intrinsic Metrics</h3>
+
+<p><strong>Perplexity (PPL)</strong> — the primary intrinsic metric (see Part 6). Lower is better; human-level is roughly 10–20.</p>
+
+<p><strong>Bits per character (BPC)</strong> — for character-level models:</p>
+
+\[\text{BPC} = \frac{1}{N} \sum_{i=1}^{N} -\log_2 P(c_i \mid c_1, \ldots, c_{i-1})\]
+
+<h3 id="112-benchmark-suites">11.2 Benchmark Suites</h3>
+
+<p>Intrinsic metrics don’t capture downstream utility. Standard benchmarks evaluate specific capabilities:</p>
+
+<p><strong>GLUE / SuperGLUE</strong> — nine tasks covering sentiment analysis, paraphrase detection, natural language inference, and more. SuperGLUE is the harder successor, on which humans score ~89%.</p>
+
+<p><strong>MMLU (Massive Multitask Language Understanding)</strong> — 57 tasks spanning STEM, humanities, social sciences, and professional domains. GPT-4 scores ~86% vs. human expert ~90%.</p>
+
+<p><strong>BIG-bench</strong> — 200+ tasks probing reasoning, creativity, and emergent behaviour not covered by standard benchmarks.</p>
+
+<p><strong>HumanEval</strong> — coding benchmark: generate Python functions from docstrings. Measures functional correctness by running unit tests.</p>
+
+<hr />
+
+<h2 id="summary">Summary</h2>
+
+<p><strong>Language model</strong> — $P(w_n \mid w_1, \ldots, w_{n-1})$. The core task.</p>
+
+<p><strong>N-grams</strong> — Markov assumption, MLE estimation, severe sparsity. Strong baseline for the pre-neural era.</p>
+
+<p><strong>Neural LMs (Bengio 2003)</strong> — word embeddings enable generalization across semantically similar words.</p>
+
+<p><strong>RNNs / LSTMs</strong> — sequential hidden state enables variable-length context; gating resolves vanishing gradients.</p>
+
+<p><strong>Transformers (2017)</strong> — parallel self-attention with direct long-range connections. Dominant architecture to this day.</p>
+
+<p><strong>Cross-entropy / perplexity</strong> — training objective and primary intrinsic evaluation metric.</p>
+
+<p><strong>Decoding</strong> — greedy is fast but boring; nucleus sampling ($p=0.9$, $T \approx 0.8$) is the practical default for generation.</p>
+
+<p><strong>Pre-training + fine-tuning</strong> — large-scale unsupervised pre-training followed by task-specific adaptation (SFT, RLHF, LoRA).</p>
+
+<p><strong>Scaling laws</strong> — loss follows power laws; compute-optimal training requires scaling model and data together (Chinchilla).</p>
+
+<p><strong>Emergent abilities</strong> — qualitatively new capabilities appear abruptly at scale.</p>
+
+<p><strong>Modern techniques</strong> — Flash Attention, MoE, and RAG push the efficiency and capability frontier.</p>
+
+<hr />
+
+<h2 id="references">References</h2>
+
+<ol>
+  <li>Bengio, Y. et al. (2003). <em>A Neural Probabilistic Language Model.</em> JMLR.</li>
+  <li>Mikolov, T. et al. (2013). <em>Efficient Estimation of Word Representations in Vector Space.</em> ICLR.</li>
+  <li>Hochreiter, S. &amp; Schmidhuber, J. (1997). <em>Long Short-Term Memory.</em> Neural Computation.</li>
+  <li>Vaswani, A. et al. (2017). <em>Attention is All You Need.</em> NeurIPS.</li>
+  <li>Devlin, J. et al. (2019). <em>BERT: Pre-training of Deep Bidirectional Transformers.</em> NAACL.</li>
+  <li>Radford, A. et al. (2019). <em>Language Models are Unsupervised Multitask Learners.</em> OpenAI Blog.</li>
+  <li>Brown, T. et al. (2020). <em>Language Models are Few-Shot Learners.</em> NeurIPS.</li>
+  <li>Kaplan, J. et al. (2020). <em>Scaling Laws for Neural Language Models.</em> arXiv.</li>
+  <li>Hoffmann, J. et al. (2022). <em>Training Compute-Optimal Large Language Models.</em> NeurIPS.</li>
+  <li>Ouyang, L. et al. (2022). <em>Training Language Models to Follow Instructions with Human Feedback.</em> NeurIPS.</li>
+  <li>Hu, E. et al. (2022). <em>LoRA: Low-Rank Adaptation of Large Language Models.</em> ICLR.</li>
+  <li>Dao, T. et al. (2022). <em>FlashAttention: Fast and Memory-Efficient Exact Attention.</em> NeurIPS.</li>
+</ol>]]></content><author><name>Kinsight Labs</name><email>your.email@domain.com</email></author><category term="deep-learning" /><category term="nlp" /><category term="language-models" /><category term="language-models" /><category term="nlp" /><category term="gpt" /><category term="bert" /><category term="llm" /><category term="neural-networks" /><category term="transformers" /><category term="pre-training" /><category term="fine-tuning" /><summary type="html"><![CDATA[Table of Contents]]></summary></entry></feed>

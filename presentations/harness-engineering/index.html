@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harness Engineering: Building Guardrails for AI Agents - Kinsight Labs</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+
+    <!-- Syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+
+    <!-- Custom presentation styles -->
+    <style>
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6 {
+            text-transform: none;
+        }
+        .reveal .slides {
+            text-align: left;
+        }
+        .reveal .slides section {
+            height: 100%;
+        }
+        .reveal .slides section.center {
+            text-align: center;
+        }
+        .reveal code {
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+        .reveal pre code {
+            max-height: 500px;
+        }
+        .reveal .small {
+            font-size: 0.7em;
+        }
+        .reveal .smaller {
+            font-size: 0.6em;
+        }
+        .reveal ul, .reveal ol {
+            display: block;
+            margin-left: 1em;
+        }
+        .reveal li {
+            margin-bottom: 0.5em;
+        }
+        .reveal .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2em;
+        }
+        .reveal .highlight-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1em;
+            border-radius: 8px;
+            margin: 1em 0;
+        }
+        .reveal .fragment.highlight-current-blue {
+            opacity: 1;
+        }
+        .reveal .fragment.highlight-current-blue.current-fragment {
+            color: #1b91ff;
+        }
+    </style>
+
+    
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section class="center">
+    <h1>Harness Engineering</h1>
+    <h3>Control Theory for AI Agents</h3>
+    <p style="margin-top: 2em;">
+        <small>From First Principles to Advanced Techniques</small>
+    </p>
+</section>
+
+<!-- Part 1: Introduction -->
+<section>
+    <section class="center">
+        <h2>Part 1: The Basics</h2>
+        <p>What is Harness Engineering?</p>
+    </section>
+
+    <section>
+        <h2>The Problem: Autonomous AI</h2>
+        <ul>
+            <li class="fragment">AI agents can now write code, interact with systems, and make decisions</li>
+            <li class="fragment">But they can also:
+                <ul>
+                    <li>Go off track</li>
+                    <li>Make costly mistakes</li>
+                    <li>Enter infinite loops</li>
+                    <li>Produce inconsistent results</li>
+                </ul>
+            </li>
+            <li class="fragment">Traditional software engineering practices aren't enough</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>What is Harness Engineering?</h2>
+        <div class="highlight-box">
+            <p><strong>Harness Engineering</strong> is the practice of building <em>tooling and guardrails</em> around AI agents to optimize for reliability, performance, and safety.</p>
+        </div>
+        <ul class="fragment" style="margin-top: 1em;">
+            <li>Think of it as a <strong>safety harness</strong> for autonomous systems</li>
+            <li>Provides structure without removing autonomy</li>
+            <li>Focuses on <strong>environment design</strong>, not just model prompting</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Real-World Analogy</h2>
+        <div class="two-column">
+            <div>
+                <h3>🏗️ Construction Worker</h3>
+                <ul>
+                    <li>Skilled and capable</li>
+                    <li>But needs safety equipment</li>
+                    <li>Works within guidelines</li>
+                    <li>Has tools and boundaries</li>
+                </ul>
+            </div>
+            <div>
+                <h3>🤖 AI Agent</h3>
+                <ul>
+                    <li>Powerful and autonomous</li>
+                    <li>But needs guardrails</li>
+                    <li>Operates within constraints</li>
+                    <li>Has harness engineering</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Why Now?</h2>
+        <ul>
+            <li class="fragment"><strong>AI capabilities are exploding</strong>
+                <ul><li>Models can now code, plan, and execute complex tasks</li></ul>
+            </li>
+            <li class="fragment"><strong>Scale demands reliability</strong>
+                <ul><li>Manual oversight doesn't scale to 1000s of agent runs</li></ul>
+            </li>
+            <li class="fragment"><strong>Cost considerations</strong>
+                <ul><li>Token usage and API costs can spiral without control</li></ul>
+            </li>
+            <li class="fragment"><strong>Trust and safety</strong>
+                <ul><li>Need deterministic controls for production systems</li></ul>
+            </li>
+        </ul>
+    </section>
+</section>
+
+<!-- Part 2: Core Components -->
+<section>
+    <section class="center">
+        <h2>Part 2: Core Components</h2>
+        <p>The Three Pillars of Harness Engineering</p>
+    </section>
+
+    <section>
+        <h2>The Three Pillars</h2>
+        <div style="margin-top: 2em;">
+            <div class="fragment highlight-box" style="margin-bottom: 1em;">
+                <h3>1️⃣ Context Engineering</h3>
+                <p>Providing the right information at the right time</p>
+            </div>
+            <div class="fragment highlight-box" style="margin-bottom: 1em;">
+                <h3>2️⃣ Architectural Constraints</h3>
+                <p>Enforcing rules and boundaries</p>
+            </div>
+            <div class="fragment highlight-box">
+                <h3>3️⃣ Garbage Collection</h3>
+                <p>Identifying and fixing inconsistencies</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>1. Context Engineering</h2>
+        <p><strong>Goal:</strong> Give agents the knowledge they need to succeed</p>
+        <ul>
+            <li class="fragment"><strong>Static context</strong>: Documentation, guidelines, examples</li>
+            <li class="fragment"><strong>Dynamic context</strong>: Real-time system state, metrics, logs</li>
+            <li class="fragment"><strong>Environmental awareness</strong>: Available tools, file structures, constraints</li>
+        </ul>
+        <div class="fragment highlight-box" style="margin-top: 1em;">
+            <p class="small"><strong>Example:</strong> LangChain's <code>LocalContextMiddleware</code> maps directory structures at startup so agents know what files exist</p>
+        </div>
+    </section>
+
+    <section>
+        <h2>Context Engineering: Best Practices</h2>
+        <pre><code class="python" data-trim data-noescape>
+# Good: Structured context with clear sections
+context = {
+    "project_structure": {
+        "src/": "Application source code",
+        "tests/": "Test files",
+        "docs/": "Documentation"
+    },
+    "constraints": [
+        "Must write tests for new features",
+        "Follow PEP 8 style guide",
+        "Maximum function length: 50 lines"
+    ],
+    "available_tools": [
+        "file_editor", "test_runner", "linter"
+    ]
+}
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>2. Architectural Constraints</h2>
+        <p><strong>Goal:</strong> Constrain the solution space to prevent chaos</p>
+        <ul>
+            <li class="fragment"><strong>LLM-based constraints</strong>: Guidelines in prompts and context</li>
+            <li class="fragment"><strong>Deterministic constraints</strong>: Custom linters, validators, tests</li>
+            <li class="fragment"><strong>Structural patterns</strong>: Enforced architectures and conventions</li>
+        </ul>
+        <div class="fragment highlight-box" style="margin-top: 1em;">
+            <p class="small"><strong>Key insight:</strong> Constraining options increases reliability more than adding flexibility</p>
+        </div>
+    </section>
+
+    <section>
+        <h2>Architectural Constraints: Example</h2>
+        <pre><code class="python" data-trim data-noescape>
+class ArchitecturalValidator:
+    """Enforce architectural rules"""
+
+    def validate_new_file(self, filepath, content):
+        rules = [
+            self.check_naming_convention,
+            self.check_imports,
+            self.check_directory_structure,
+            self.check_dependencies
+        ]
+
+        for rule in rules:
+            if not rule(filepath, content):
+                return False, rule.error_message
+
+        return True, "Valid"
+
+    def check_naming_convention(self, filepath, content):
+        # Enforce snake_case for Python files
+        return filepath.name.islower()
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>3. Garbage Collection</h2>
+        <p><strong>Goal:</strong> Continuously identify and fix problems</p>
+        <ul>
+            <li class="fragment"><strong>Periodic audits</strong>: Scan for architectural violations</li>
+            <li class="fragment"><strong>Inconsistency detection</strong>: Find mismatches in code/docs</li>
+            <li class="fragment"><strong>Entropy fighting</strong>: Prevent gradual degradation</li>
+        </ul>
+        <div class="fragment highlight-box" style="margin-top: 1em;">
+            <p class="small"><strong>Think of it as:</strong> Automated code review that runs continuously</p>
+        </div>
+    </section>
+
+    <section>
+        <h2>Garbage Collection: Example</h2>
+        <pre><code class="python" data-trim data-noescape>
+class ConsistencyChecker:
+    """Periodic agent that finds violations"""
+
+    def run_daily_audit(self):
+        issues = []
+
+        # Check for unused imports
+        issues.extend(self.find_unused_imports())
+
+        # Check for documentation mismatches
+        issues.extend(self.find_doc_mismatches())
+
+        # Check for architectural violations
+        issues.extend(self.check_layer_violations())
+
+        # Auto-fix or create tickets
+        for issue in issues:
+            self.attempt_fix_or_notify(issue)
+        </code></pre>
+    </section>
+</section>
+
+<!-- Part 2.5: Control Theory Connection -->
+<section>
+    <section class="center">
+        <h2>Part 2.5: Control Theory Connection</h2>
+        <p>The Mathematical Foundation</p>
+    </section>
+
+    <section>
+        <h2>Harness Engineering = Control Theory for AI</h2>
+        <p><strong>Control theory</strong> is the study of controlling dynamical systems using feedback</p>
+        <div class="fragment highlight-box" style="margin-top: 1em;">
+            <p><strong>Key insight:</strong> AI agents are <em>dynamical systems</em> that need to be controlled to achieve desired behaviors while maintaining stability</p>
+        </div>
+        <p class="fragment" style="margin-top: 1em;">Harness engineering applies control theory principles to autonomous AI systems</p>
+    </section>
+
+    <section>
+        <h2>Control Theory: Core Concepts</h2>
+        <ul>
+            <li class="fragment"><strong>System</strong>: The agent and its environment</li>
+            <li class="fragment"><strong>State</strong>: Current condition (what the agent is doing)</li>
+            <li class="fragment"><strong>Control input</strong>: Actions/constraints applied to the agent</li>
+            <li class="fragment"><strong>Output</strong>: Observable behavior and results</li>
+            <li class="fragment"><strong>Feedback</strong>: Measuring output to adjust control</li>
+            <li class="fragment"><strong>Setpoint</strong>: Desired target state or goal</li>
+            <li class="fragment"><strong>Error</strong>: Difference between desired and actual state</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Feedback Control Loop</h2>
+        <pre class="fragment"><code class="text" data-trim>
+┌─────────────┐      Control       ┌──────────┐
+│  Controller │────Input/Actions───▶│  System  │
+│  (Harness)  │                     │ (Agent)  │
+└─────────────┘                     └──────────┘
+       ▲                                  │
+       │                                  │
+       │         Measurements/            │
+       │         Observations             │
+       │                                  ▼
+       │                            ┌──────────┐
+       └────────Feedback────────────│  Sensors │
+                                    │(Observ.) │
+                                    └──────────┘
+        </code></pre>
+        <p class="fragment small">The harness observes agent behavior and adjusts constraints/context to keep it on track</p>
+    </section>
+
+    <section>
+        <h2>Mapping Harness ↔ Control Theory</h2>
+        <table style="font-size: 0.75em; width: 100%;">
+            <thead>
+                <tr>
+                    <th>Control Theory</th>
+                    <th>Harness Engineering</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="fragment">
+                    <td><strong>Feedback loop</strong></td>
+                    <td>Observability + self-correction</td>
+                </tr>
+                <tr class="fragment">
+                    <td><strong>Setpoint</strong></td>
+                    <td>Success criteria, evaluation metrics</td>
+                </tr>
+                <tr class="fragment">
+                    <td><strong>Error signal</strong></td>
+                    <td>Deviation from requirements</td>
+                </tr>
+                <tr class="fragment">
+                    <td><strong>Control input</strong></td>
+                    <td>Constraints, context, tool restrictions</td>
+                </tr>
+                <tr class="fragment">
+                    <td><strong>Stability</strong></td>
+                    <td>Loop detection, resource limits</td>
+                </tr>
+                <tr class="fragment">
+                    <td><strong>Disturbances</strong></td>
+                    <td>Edge cases, unexpected inputs</td>
+                </tr>
+                <tr class="fragment">
+                    <td><strong>Observability</strong></td>
+                    <td>Metrics, traces, logs</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>The Three Types of Control</h2>
+        <div style="font-size: 0.85em;">
+            <div class="fragment highlight-box" style="margin-bottom: 1em;">
+                <h3>1️⃣ Open-Loop Control</h3>
+                <p>No feedback - just execute blindly</p>
+                <p class="small">❌ <strong>Problem:</strong> Naive prompting without verification</p>
+            </div>
+            <div class="fragment highlight-box" style="margin-bottom: 1em;">
+                <h3>2️⃣ Closed-Loop Control (Feedback)</h3>
+                <p>Measure output and adjust based on error</p>
+                <p class="small">✅ <strong>Solution:</strong> Self-verification loops, observability</p>
+            </div>
+            <div class="fragment highlight-box">
+                <h3>3️⃣ Feedforward Control</h3>
+                <p>Anticipate disturbances before they happen</p>
+                <p class="small">✅ <strong>Solution:</strong> Pre-execution constraints, context engineering</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>PID Control for AI Agents</h2>
+        <p>The classic PID controller has three components:</p>
+        <div style="font-size: 0.85em; margin-top: 1em;">
+            <div class="fragment highlight-box" style="margin-bottom: 0.5em;">
+                <strong>P (Proportional):</strong> React to <em>current</em> error
+                <br><small>Example: Immediate constraint violation → Block action</small>
+            </div>
+            <div class="fragment highlight-box" style="margin-bottom: 0.5em;">
+                <strong>I (Integral):</strong> React to <em>accumulated</em> error over time
+                <br><small>Example: Garbage collection - fix drift that accumulates</small>
+            </div>
+            <div class="fragment highlight-box">
+                <strong>D (Derivative):</strong> React to <em>rate of change</em> of error
+                <br><small>Example: Loop detection - catch spiraling behavior early</small>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>PID Harness Example</h2>
+        <pre><code class="python" data-trim data-noescape>
+class PIDHarnessController:
+    def __init__(self):
+        self.error_history = []  # For integral term
+        self.last_error = 0      # For derivative term
+
+    def control(self, agent_state, setpoint):
+        # Calculate error
+        error = self.measure_deviation(agent_state, setpoint)
+
+        # Proportional: Current error
+        p_correction = self.Kp * error
+
+        # Integral: Accumulated error
+        self.error_history.append(error)
+        i_correction = self.Ki * sum(self.error_history)
+
+        # Derivative: Rate of change
+        d_correction = self.Kd * (error - self.last_error)
+        self.last_error = error
+
+        # Total control signal
+        control_signal = p_correction + i_correction + d_correction
+
+        return self.apply_correction(control_signal)
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Stability: The Critical Requirement</h2>
+        <p><strong>In control theory, stability means:</strong></p>
+        <ul>
+            <li class="fragment">System doesn't diverge to infinity</li>
+            <li class="fragment">Bounded output for bounded input</li>
+            <li class="fragment">Returns to equilibrium after disturbances</li>
+        </ul>
+        <p class="fragment" style="margin-top: 1em;"><strong>For AI agents:</strong></p>
+        <ul>
+            <li class="fragment">No infinite loops or runaway behaviors</li>
+            <li class="fragment">Predictable responses to edge cases</li>
+            <li class="fragment">Self-correcting when off track</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Lyapunov Stability for Agents</h2>
+        <p><strong>Lyapunov function:</strong> A "energy" function that decreases over time</p>
+        <pre class="fragment"><code class="python" data-trim data-noescape>
+def lyapunov_function(agent_state, goal):
+    """
+    Measure 'distance' from goal.
+    Should decrease with each agent action.
+    """
+    return distance_to_goal(agent_state, goal)
+
+# Agent is stable if V(state) decreases over time
+def verify_stability(trace):
+    lyapunov_values = [
+        lyapunov_function(state, goal)
+        for state in trace.states
+    ]
+
+    # Check if generally decreasing
+    if not is_decreasing(lyapunov_values):
+        alert("Agent may be unstable!")
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Observability & Controllability</h2>
+        <div class="two-column">
+            <div>
+                <h3>Observability</h3>
+                <p class="small">Can we determine the system's internal state from outputs?</p>
+                <ul style="font-size: 0.8em;">
+                    <li class="fragment">Comprehensive logging</li>
+                    <li class="fragment">Tracing frameworks</li>
+                    <li class="fragment">Metrics dashboards</li>
+                    <li class="fragment">Intermediate outputs</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Controllability</h3>
+                <p class="small">Can we drive the system to any desired state?</p>
+                <ul style="font-size: 0.8em;">
+                    <li class="fragment">Rich constraint language</li>
+                    <li class="fragment">Fine-grained tool control</li>
+                    <li class="fragment">Context manipulation</li>
+                    <li class="fragment">Intervention points</li>
+                </ul>
+            </div>
+        </div>
+        <p class="fragment" style="margin-top: 1em;"><strong>Both are necessary for effective harness engineering</strong></p>
+    </section>
+
+    <section>
+        <h2>State Space Models</h2>
+        <p>Model the agent as a state machine:</p>
+        <pre><code class="python" data-trim data-noescape>
+class AgentStateSpace:
+    """
+    State space representation:
+    x(t+1) = f(x(t), u(t), w(t))
+    y(t) = g(x(t), v(t))
+
+    Where:
+    x = agent state (context, history, current task)
+    u = control input (constraints, tools)
+    w = disturbances (unexpected inputs)
+    y = observable output (actions, results)
+    v = measurement noise
+    """
+
+    def predict_next_state(self, current_state, control_input):
+        return self.state_transition(current_state, control_input)
+
+    def is_in_safe_region(self, state):
+        return self.safety_constraints.check(state)
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Optimal Control & Cost Functions</h2>
+        <p>Harness engineering is an <strong>optimization problem</strong>:</p>
+        <pre><code class="python" data-trim data-noescape>
+def cost_function(agent_trace):
+    """
+    Minimize total cost:
+    J = Σ [quality_cost + token_cost + time_cost + violation_cost]
+    """
+    return (
+        weight_quality * (1 - quality_score(trace)) +
+        weight_tokens * token_usage(trace) +
+        weight_time * latency(trace) +
+        weight_violations * constraint_violations(trace)
+    )
+
+# Goal: Find harness configuration that minimizes cost
+optimal_harness = minimize(
+    cost_function,
+    over=harness_parameters
+)
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Adaptive Control: Learning Harnesses</h2>
+        <p><strong>Adaptive control</strong> adjusts controller parameters online</p>
+        <pre><code class="python" data-trim data-noescape>
+class AdaptiveHarness:
+    def __init__(self):
+        self.constraints = default_constraints()
+        self.performance_history = []
+
+    def adapt(self, episode_result):
+        """Update harness based on performance"""
+        self.performance_history.append(episode_result)
+
+        if self.detect_pattern(self.performance_history):
+            # Tighten constraints if too many failures
+            if failure_rate_high():
+                self.constraints = self.tighten()
+
+            # Loosen if overly restrictive
+            elif false_positive_rate_high():
+                self.constraints = self.loosen()
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Robust Control: Handling Uncertainty</h2>
+        <p><strong>Challenge:</strong> Agent behavior is stochastic and hard to predict</p>
+        <p class="fragment"><strong>Solution:</strong> Robust control techniques</p>
+        <ul class="fragment">
+            <li><strong>Worst-case guarantees</strong>: Design harness for worst possible behavior</li>
+            <li><strong>Safety margins</strong>: Add buffer in constraints</li>
+            <li><strong>Fail-safes</strong>: Emergency stops and rollback mechanisms</li>
+            <li><strong>Graceful degradation</strong>: Reduced functionality > complete failure</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Model Predictive Control (MPC)</h2>
+        <p><strong>Idea:</strong> Predict future behavior and optimize ahead</p>
+        <pre><code class="python" data-trim data-noescape>
+class MPCHarness:
+    def control(self, agent_state):
+        # Simulate multiple futures
+        futures = []
+        for action in possible_actions:
+            predicted_trajectory = self.simulate(
+                agent_state, action, horizon=5
+            )
+            cost = self.evaluate_trajectory(predicted_trajectory)
+            futures.append((action, cost))
+
+        # Choose action with best predicted outcome
+        best_action = min(futures, key=lambda x: x[1])[0]
+
+        return best_action
+        </code></pre>
+        <p class="fragment small">Useful for complex agents with long-running tasks</p>
+    </section>
+
+    <section>
+        <h2>Why Control Theory Matters</h2>
+        <ol>
+            <li class="fragment"><strong>Proven mathematical framework</strong> - 70+ years of theory</li>
+            <li class="fragment"><strong>Formal guarantees</strong> - Can prove stability and safety</li>
+            <li class="fragment"><strong>Systematic design</strong> - Not just trial and error</li>
+            <li class="fragment"><strong>Cross-domain lessons</strong> - Learn from aerospace, robotics, etc.</li>
+            <li class="fragment"><strong>Optimization tools</strong> - Rigorous methods for tuning</li>
+        </ol>
+        <p class="fragment" style="margin-top: 1em;"><strong>Harness engineering isn't new—it's applying time-tested control principles to AI</strong></p>
+    </section>
+
+    <section>
+        <h2>Key Takeaway: Control Theory Lens</h2>
+        <div class="highlight-box">
+            <p><strong>When designing a harness, ask:</strong></p>
+            <ul style="font-size: 0.9em;">
+                <li>What is my feedback loop?</li>
+                <li>How do I measure error/deviation?</li>
+                <li>Is my system observable?</li>
+                <li>Is my system controllable?</li>
+                <li>What guarantees stability?</li>
+                <li>How do I handle disturbances?</li>
+                <li>Am I using feedforward or feedback control?</li>
+            </ul>
+        </div>
+    </section>
+</section>
+
+<!-- Part 3: Practical Techniques -->
+<section>
+    <section class="center">
+        <h2>Part 3: Practical Techniques</h2>
+        <p>How to Implement Harness Engineering</p>
+    </section>
+
+    <section>
+        <h2>Technique 1: Self-Verification Loops</h2>
+        <p><strong>Problem:</strong> Agents skip validation steps</p>
+        <p><strong>Solution:</strong> Intercept before completion and force verification</p>
+        <pre><code class="python" data-trim data-noescape>
+class PreCompletionChecklistMiddleware:
+    """Run before agent claims completion"""
+
+    def intercept(self, agent_response):
+        if agent_response.claims_complete:
+            checklist = self.generate_checklist()
+            return f"""
+            Before marking complete, verify:
+            {checklist}
+
+            Have you completed all items? If not, continue.
+            """
+        return agent_response
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Technique 2: Loop Detection</h2>
+        <p><strong>Problem:</strong> Agents get stuck in repetitive patterns</p>
+        <p><strong>Solution:</strong> Track actions and intervene when loops detected</p>
+        <pre><code class="python" data-trim data-noescape>
+class LoopDetectionMiddleware:
+    def __init__(self):
+        self.action_history = []
+
+    def track_action(self, action):
+        self.action_history.append(action)
+
+        # Detect if same file edited 5+ times
+        if self.count_repeats(action) >= 5:
+            return {
+                "alert": "Loop detected",
+                "suggestion": "Try a different approach"
+            }
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Technique 3: Reasoning Budget Allocation</h2>
+        <p><strong>Goal:</strong> Optimize compute/cost vs. task complexity</p>
+        <div style="margin-top: 1em;">
+            <div class="highlight-box">
+                <p><strong>"Reasoning Sandwich" Pattern</strong></p>
+                <ul>
+                    <li>🧠 <strong>High reasoning</strong>: Planning phase</li>
+                    <li>⚡ <strong>Low reasoning</strong>: Execution phase</li>
+                    <li>🧠 <strong>High reasoning</strong>: Verification phase</li>
+                </ul>
+            </div>
+        </div>
+        <p class="fragment small" style="margin-top: 1em;">LangChain used "xhigh-high-xhigh" allocation to reach Top 5 on Terminal Bench</p>
+    </section>
+
+    <section>
+        <h2>Technique 4: Error Pattern Analysis</h2>
+        <p><strong>Goal:</strong> Learn from failures systematically</p>
+        <pre><code class="python" data-trim data-noescape>
+class ErrorAnalysisAgent:
+    def analyze_failures(self, traces):
+        # Fetch failed runs from observability
+        failures = self.fetch_traces(traces)
+
+        # Spawn parallel analysis agents
+        analyses = parallel_map(
+            self.analyze_single_failure,
+            failures
+        )
+
+        # Synthesize patterns
+        patterns = self.find_common_patterns(analyses)
+
+        # Generate harness improvements
+        return self.suggest_harness_updates(patterns)
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Technique 5: Constraint-Based Prompting</h2>
+        <p><strong>Instead of:</strong> "Write clean code"</p>
+        <p><strong>Use specific constraints:</strong></p>
+        <pre><code class="markdown" data-trim data-noescape>
+You must follow these constraints:
+1. Maximum function length: 50 lines
+2. Maximum cyclomatic complexity: 10
+3. Must include docstrings
+4. Must write tests achieving 80% coverage
+5. Must follow existing patterns in /examples
+
+Violations will fail the pre-commit hook.
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Technique 6: Tool Access Control</h2>
+        <p><strong>Goal:</strong> Limit what agents can do</p>
+        <pre><code class="python" data-trim data-noescape>
+class HarnessedAgent:
+    def __init__(self, allowed_tools):
+        self.allowed_tools = allowed_tools
+
+    def execute_tool(self, tool_name, params):
+        if tool_name not in self.allowed_tools:
+            return {
+                "error": f"Tool {tool_name} not allowed",
+                "available": self.allowed_tools
+            }
+
+        # Additional validation
+        if not self.validate_params(tool_name, params):
+            return {"error": "Invalid parameters"}
+
+        return self.tools[tool_name].execute(params)
+        </code></pre>
+    </section>
+</section>
+
+<!-- Part 4: Advanced Concepts -->
+<section>
+    <section class="center">
+        <h2>Part 4: Advanced Concepts</h2>
+        <p>Going Deeper</p>
+    </section>
+
+    <section>
+        <h2>Multi-Layer Harness Architecture</h2>
+        <div style="font-size: 0.8em;">
+            <div class="highlight-box" style="margin-bottom: 0.5em;">
+                <strong>Layer 1: Pre-execution</strong> - Context provision, constraint checking
+            </div>
+            <div class="highlight-box" style="margin-bottom: 0.5em;">
+                <strong>Layer 2: During execution</strong> - Loop detection, resource monitoring
+            </div>
+            <div class="highlight-box" style="margin-bottom: 0.5em;">
+                <strong>Layer 3: Pre-completion</strong> - Verification checklists, validation
+            </div>
+            <div class="highlight-box" style="margin-bottom: 0.5em;">
+                <strong>Layer 4: Post-execution</strong> - Testing, linting, quality gates
+            </div>
+            <div class="highlight-box">
+                <strong>Layer 5: Periodic</strong> - Garbage collection, consistency checks
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Observability & Feedback Loops</h2>
+        <p><strong>Control theory principle:</strong> You can't control what you can't measure</p>
+        <p style="margin-top: 1em;">Key metrics to track:</p>
+        <ul>
+            <li class="fragment"><strong>Success rate</strong>: % of tasks completed correctly</li>
+            <li class="fragment"><strong>Token efficiency</strong>: Tokens per successful completion</li>
+            <li class="fragment"><strong>Latency</strong>: Time to completion</li>
+            <li class="fragment"><strong>Error patterns</strong>: Common failure modes</li>
+            <li class="fragment"><strong>Loop frequency</strong>: How often agents get stuck (stability)</li>
+            <li class="fragment"><strong>Constraint violations</strong>: Rules broken per run</li>
+        </ul>
+        <p class="fragment small" style="margin-top: 1em;"><strong>These metrics form your feedback signal for control</strong></p>
+    </section>
+
+    <section>
+        <h2>The Feedback Loop Pattern</h2>
+        <pre><code class="python" data-trim data-noescape>
+def harness_improvement_loop():
+    while True:
+        # 1. Deploy agent with current harness
+        results = run_agent_on_tasks(batch_size=100)
+
+        # 2. Analyze failures
+        failures = filter(lambda r: not r.success, results)
+        patterns = analyze_error_patterns(failures)
+
+        # 3. Identify harness gaps
+        gaps = identify_missing_constraints(patterns)
+
+        # 4. Update harness
+        update_context(gaps.context_needs)
+        update_constraints(gaps.constraint_needs)
+        update_tools(gaps.tool_needs)
+
+        # 5. A/B test improvements
+        evaluate_improvement()
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Harness-First Development</h2>
+        <p><strong>Traditional approach:</strong></p>
+        <ol>
+            <li>Build AI agent</li>
+            <li>Find it makes mistakes</li>
+            <li>Add guardrails reactively</li>
+        </ol>
+        <p style="margin-top: 1em;"><strong>Harness-first approach:</strong></p>
+        <ol>
+            <li class="fragment">Define success criteria and constraints</li>
+            <li class="fragment">Build harness (tools, validators, context)</li>
+            <li class="fragment">Deploy agent within harness</li>
+            <li class="fragment">Iterate on harness based on failures</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2>Case Study: LangChain's Results</h2>
+        <p>Impact of harness engineering on Terminal Bench 2.0:</p>
+        <div class="two-column" style="margin-top: 1em;">
+            <div>
+                <h3>Before Harness</h3>
+                <ul>
+                    <li>Rank: Top 30</li>
+                    <li>Many loop failures</li>
+                    <li>Inconsistent verification</li>
+                    <li>High token waste</li>
+                </ul>
+            </div>
+            <div>
+                <h3>After Harness</h3>
+                <ul>
+                    <li>Rank: Top 5</li>
+                    <li>Loop detection active</li>
+                    <li>Forced verification</li>
+                    <li>Optimized reasoning budget</li>
+                </ul>
+            </div>
+        </div>
+        <p class="fragment" style="margin-top: 1em;"><strong>Same model, better environment = 6x ranking improvement</strong></p>
+    </section>
+
+    <section>
+        <h2>Strategic Implications</h2>
+        <ul>
+            <li class="fragment"><strong>Harnesses as product differentiators</strong>
+                <ul><li>The same LLM with a better harness wins</li></ul>
+            </li>
+            <li class="fragment"><strong>Convergence on standards</strong>
+                <ul><li>Harnesses may drive architectural standardization</li></ul>
+            </li>
+            <li class="fragment"><strong>Shift in engineering focus</strong>
+                <ul><li>From "writing code" to "designing environments"</li></ul>
+            </li>
+            <li class="fragment"><strong>Investment priorities</strong>
+                <ul><li>Deterministic tooling > More prompting</li></ul>
+            </li>
+        </ul>
+    </section>
+</section>
+
+<!-- Part 5: Practical Implementation -->
+<section>
+    <section class="center">
+        <h2>Part 5: Building Your First Harness</h2>
+        <p>A Step-by-Step Guide</p>
+    </section>
+
+    <section>
+        <h2>Step 1: Define Your Requirements</h2>
+        <p>Start by asking:</p>
+        <ul>
+            <li class="fragment">What is the agent's primary task?</li>
+            <li class="fragment">What are the success criteria?</li>
+            <li class="fragment">What are the risks or failure modes?</li>
+            <li class="fragment">What constraints must be enforced?</li>
+            <li class="fragment">What context does the agent need?</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Step 2: Build Context Layer</h2>
+        <pre><code class="python" data-trim data-noescape>
+def build_context_layer():
+    return {
+        # Static documentation
+        "guidelines": load_guidelines(),
+        "examples": load_examples(),
+
+        # Dynamic environment info
+        "file_structure": map_directory_tree(),
+        "available_tools": list_tools(),
+
+        # Task-specific context
+        "task_requirements": get_task_spec(),
+        "evaluation_criteria": get_success_criteria(),
+
+        # Constraints
+        "forbidden_patterns": load_antipatterns(),
+        "required_patterns": load_best_practices()
+    }
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Step 3: Implement Constraints</h2>
+        <pre><code class="python" data-trim data-noescape>
+class ConstraintLayer:
+    def __init__(self):
+        self.validators = [
+            StyleValidator(),
+            SecurityValidator(),
+            PerformanceValidator(),
+            ArchitectureValidator()
+        ]
+
+    def validate(self, agent_action):
+        for validator in self.validators:
+            result = validator.check(agent_action)
+            if not result.valid:
+                return {
+                    "allowed": False,
+                    "reason": result.reason,
+                    "suggestion": result.fix_suggestion
+                }
+        return {"allowed": True}
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Step 4: Add Safety Nets</h2>
+        <pre><code class="python" data-trim data-noescape>
+class SafetyLayer:
+    def __init__(self):
+        self.loop_detector = LoopDetector()
+        self.resource_monitor = ResourceMonitor()
+        self.verification_gate = VerificationGate()
+
+    def wrap_agent(self, agent):
+        # Monitor during execution
+        agent.on_action(self.loop_detector.track)
+        agent.on_action(self.resource_monitor.check)
+
+        # Intercept before completion
+        agent.on_complete(self.verification_gate.verify)
+
+        return agent
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Step 5: Deploy & Observe</h2>
+        <pre><code class="python" data-trim data-noescape>
+class HarnessedAgent:
+    def run_with_observability(self, task):
+        with trace_context() as trace:
+            try:
+                # Provide context
+                context = self.context_layer.build()
+
+                # Execute with constraints
+                result = self.agent.execute(task, context)
+
+                # Validate result
+                validated = self.constraint_layer.validate(result)
+
+                # Log metrics
+                trace.log_metrics({
+                    "success": validated.success,
+                    "tokens": trace.token_count,
+                    "time": trace.duration
+                })
+
+                return validated
+            except Exception as e:
+                trace.log_error(e)
+                self.analyze_failure(trace)
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>Step 6: Iterate Based on Data</h2>
+        <ol>
+            <li class="fragment">Run agent on test tasks</li>
+            <li class="fragment">Collect failure traces</li>
+            <li class="fragment">Identify patterns in failures</li>
+            <li class="fragment">Add missing constraints/context</li>
+            <li class="fragment">Measure improvement</li>
+            <li class="fragment">Repeat</li>
+        </ol>
+        <div class="fragment highlight-box" style="margin-top: 1em;">
+            <p><strong>Key principle:</strong> Let failures guide harness evolution</p>
+        </div>
+    </section>
+</section>
+
+<!-- Part 6: Best Practices & Antipatterns -->
+<section>
+    <section class="center">
+        <h2>Part 6: Best Practices</h2>
+        <p>Do's and Don'ts</p>
+    </section>
+
+    <section>
+        <h2>✅ Do's</h2>
+        <ul>
+            <li class="fragment"><strong>Start simple</strong> - Add constraints incrementally</li>
+            <li class="fragment"><strong>Make constraints explicit</strong> - Document what and why</li>
+            <li class="fragment"><strong>Use deterministic validation</strong> - Don't rely only on LLM</li>
+            <li class="fragment"><strong>Measure everything</strong> - Observability is critical</li>
+            <li class="fragment"><strong>Iterate based on data</strong> - Not intuition alone</li>
+            <li class="fragment"><strong>Balance autonomy and control</strong> - Don't over-constrain</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>❌ Don'ts</h2>
+        <ul>
+            <li class="fragment"><strong>Don't over-engineer upfront</strong> - Build harness iteratively</li>
+            <li class="fragment"><strong>Don't only prompt</strong> - Use code-based guardrails too</li>
+            <li class="fragment"><strong>Don't ignore failures</strong> - Each failure teaches you something</li>
+            <li class="fragment"><strong>Don't assume one harness fits all</strong> - Different tasks need different harnesses</li>
+            <li class="fragment"><strong>Don't forget cost</strong> - Monitor token usage and latency</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Common Antipatterns</h2>
+        <div style="font-size: 0.85em;">
+            <div class="highlight-box" style="margin-bottom: 1em;">
+                <strong>❌ Vague constraints</strong><br>
+                "Write good code" → ✅ "Functions must be &lt; 50 lines, complexity &lt; 10"
+            </div>
+            <div class="highlight-box" style="margin-bottom: 1em;">
+                <strong>❌ No feedback loops</strong><br>
+                Deploy and hope → ✅ Deploy, measure, analyze, improve
+            </div>
+            <div class="highlight-box" style="margin-bottom: 1em;">
+                <strong>❌ Only LLM-based validation</strong><br>
+                Trust agent's self-assessment → ✅ Run tests, linters, validators
+            </div>
+            <div class="highlight-box">
+                <strong>❌ Reactive harness building</strong><br>
+                Fix issues as they arise → ✅ Design harness based on risk analysis
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Measuring Harness Effectiveness</h2>
+        <p>Key questions to evaluate your harness:</p>
+        <ol style="font-size: 0.85em;">
+            <li class="fragment">Are fewer runs failing over time?</li>
+            <li class="fragment">Is token efficiency improving?</li>
+            <li class="fragment">Are loops detected before they spiral?</li>
+            <li class="fragment">Is output quality more consistent?</li>
+            <li class="fragment">Are you catching errors before production?</li>
+            <li class="fragment">Can you explain why failures happen?</li>
+        </ol>
+    </section>
+</section>
+
+<!-- Part 7: The Future -->
+<section>
+    <section class="center">
+        <h2>Part 7: The Future</h2>
+        <p>Where is Harness Engineering Going?</p>
+    </section>
+
+    <section>
+        <h2>Emerging Trends</h2>
+        <ul>
+            <li class="fragment"><strong>Standardized harness frameworks</strong>
+                <ul><li>Like Rails for web apps, but for AI agents</li></ul>
+            </li>
+            <li class="fragment"><strong>Harness marketplaces</strong>
+                <ul><li>Pre-built harnesses for common tasks</li></ul>
+            </li>
+            <li class="fragment"><strong>Auto-evolving harnesses</strong>
+                <ul><li>Harnesses that improve themselves based on data</li></ul>
+            </li>
+            <li class="fragment"><strong>Multi-agent coordination</strong>
+                <ul><li>Harnesses for agent swarms and hierarchies</li></ul>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Research Frontiers</h2>
+        <ul>
+            <li class="fragment">Formal verification of AI agent behavior</li>
+            <li class="fragment">Optimal constraint discovery algorithms</li>
+            <li class="fragment">Transfer learning for harnesses</li>
+            <li class="fragment">Adversarial harness testing</li>
+            <li class="fragment">Economic models for compute allocation</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>The Paradigm Shift</h2>
+        <div class="two-column">
+            <div>
+                <h3>Traditional Software</h3>
+                <ul>
+                    <li>Write code</li>
+                    <li>Test code</li>
+                    <li>Deploy code</li>
+                    <li>Maintain code</li>
+                </ul>
+            </div>
+            <div class="fragment">
+                <h3>AI-Native Software</h3>
+                <ul>
+                    <li>Design environment</li>
+                    <li>Build harness</li>
+                    <li>Deploy agent</li>
+                    <li>Evolve harness</li>
+                </ul>
+            </div>
+        </div>
+        <p class="fragment" style="margin-top: 1em;">
+            <strong>The code is not the product—the environment is</strong>
+        </p>
+    </section>
+
+    <section>
+        <h2>Skills for the Future</h2>
+        <p>What engineers will need to know:</p>
+        <ul>
+            <li class="fragment"><strong>Environment design</strong> - Creating effective agent workspaces</li>
+            <li class="fragment"><strong>Constraint architecture</strong> - Designing rule systems</li>
+            <li class="fragment"><strong>Observability engineering</strong> - Building feedback loops</li>
+            <li class="fragment"><strong>Agent psychology</strong> - Understanding LLM behavior patterns</li>
+            <li class="fragment"><strong>Safety engineering</strong> - Building robust guardrails</li>
+        </ul>
+    </section>
+</section>
+
+<!-- Final Section -->
+<section>
+    <section class="center">
+        <h2>Key Takeaways</h2>
+    </section>
+
+    <section>
+        <h2>Remember These Points</h2>
+        <ol>
+            <li class="fragment"><strong>Harness engineering = control theory for AI</strong> - Proven mathematical foundation</li>
+            <li class="fragment"><strong>Feedback loops are essential</strong> - Measure, compare, adjust</li>
+            <li class="fragment"><strong>Three pillars</strong>: Context, Constraints, Garbage Collection</li>
+            <li class="fragment"><strong>Stability is critical</strong> - Prevent runaway behaviors</li>
+            <li class="fragment"><strong>Observability = Controllability</strong> - Must measure to control</li>
+            <li class="fragment"><strong>Deterministic + LLM</strong> guardrails work better than either alone</li>
+            <li class="fragment"><strong>Design systems, not just prompts</strong> - Focus on environment</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2>Getting Started Today</h2>
+        <ol>
+            <li class="fragment">Pick one AI agent or workflow</li>
+            <li class="fragment">Identify its main failure modes</li>
+            <li class="fragment">Add one constraint to prevent the most common failure</li>
+            <li class="fragment">Measure if it helps</li>
+            <li class="fragment">Add observability to track what happens</li>
+            <li class="fragment">Iterate</li>
+        </ol>
+        <p class="fragment" style="margin-top: 1em;"><strong>Start small, build incrementally, measure always</strong></p>
+    </section>
+
+    <section class="center">
+        <h2>Resources & References</h2>
+        <div style="text-align: left; font-size: 0.7em; margin-top: 2em;">
+            <p><strong>Harness Engineering:</strong></p>
+            <ul>
+                <li>Martin Fowler: <a href="https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html">Exploring Harness Engineering</a></li>
+                <li>LangChain: <a href="https://blog.langchain.com/improving-deep-agents-with-harness-engineering/">Improving Deep Agents with Harness Engineering</a></li>
+            </ul>
+            <p style="margin-top: 1em;"><strong>Control Theory Background:</strong></p>
+            <ul>
+                <li>Classical: "Feedback Control Systems" by Åström & Murray</li>
+                <li>Modern: "Model Predictive Control" by Rawlings & Mayne</li>
+                <li>Applied: "Reinforcement Learning and Optimal Control" by Bertsekas</li>
+            </ul>
+            <p style="margin-top: 1em;"><strong>Frameworks & Tools:</strong></p>
+            <ul>
+                <li>LangChain - Agent framework with built-in observability</li>
+                <li>LangSmith - Tracing and debugging for LLM apps</li>
+                <li>Weights & Biases - Experiment tracking</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="center">
+        <h1>Thank You!</h1>
+        <h3>Questions?</h3>
+        <p style="margin-top: 3em;">
+            <small>Use arrow keys to navigate • Press 'S' for speaker notes • Press 'F' for fullscreen</small>
+        </p>
+    </section>
+</section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js JS -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/zoom/zoom.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/search/search.js"></script>
+
+    <script>
+        Reveal.initialize({
+            hash: true,
+            slideNumber: 'c/t',
+            transition: 'slide',
+            backgroundTransition: 'fade',
+            controls: true,
+            progress: true,
+            center: false,
+            width: 1280,
+            height: 720,
+            margin: 0.1,
+
+            // Plugins
+            plugins: [
+                RevealMarkdown,
+                RevealHighlight,
+                RevealNotes,
+                RevealZoom,
+                RevealSearch
+            ]
+        });
+    </script>
+</body>
+</html>
