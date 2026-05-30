@@ -107,7 +107,7 @@
         </span>
         
         
-        <span class="reading-time">29 min read</span>
+        <span class="reading-time">42 min read</span>
       </div>
     </header>
 
@@ -196,6 +196,10 @@
       <li><a href="#113-mixture-of-experts">11.3 Mixture of Experts</a></li>
       <li><a href="#114-retrieval-augmented-generation">11.4 Retrieval-Augmented Generation</a></li>
       <li><a href="#115-chain-of-thought-reasoning">11.5 Chain-of-Thought Reasoning</a></li>
+      <li><a href="#116-agents-and-tool-use">11.6 Agents and Tool Use</a></li>
+      <li><a href="#117-multimodal-and-long-context-models">11.7 Multimodal and Long-Context Models</a></li>
+      <li><a href="#118-inference-and-serving-optimization">11.8 Inference and Serving Optimization</a></li>
+      <li><a href="#119-model-safety-and-alignment">11.9 Model Safety and Alignment</a></li>
     </ul>
   </li>
   <li><a href="#part-12-evaluation">Part 12: Evaluation</a>
@@ -226,6 +230,8 @@
   <li><strong>Part 10</strong> derives the empirical scaling laws governing modern LLMs.</li>
   <li><strong>Parts 11–12</strong> cover modern inference techniques, reasoning, and evaluation.</li>
 </ul>
+
+<p><strong>2026 update:</strong> the frontier has shifted toward multimodal systems, long-context models, tool use, and test-time reasoning, so the later sections reflect those developments rather than stopping at the 2023 generation of models.</p>
 
 <p><strong>Prerequisites:</strong> basic probability, familiarity with neural networks.</p>
 
@@ -258,7 +264,9 @@
 2020    GPT-3 (175B parameters)
 2022    ChatGPT (RLHF)
 2023    GPT-4 (multimodal)
-2024+   Scaling continues...
+2024    Frontier multimodal models, longer context windows, better tool use
+2025    Reasoning-focused models and stronger code / agent benchmarks
+2026    Larger context, faster inference, and more reliable test-time compute
 </code></pre></div></div>
 
 <hr />
@@ -277,6 +285,12 @@
 
 \[P(w_i \mid w_1, \ldots, w_{i-1}) \approx P(w_i \mid w_{i-2}, w_{i-1})\]
 
+<p>These are truncated versions of the chain rule. If we write the full sequence probability as</p>
+
+\[P(w_1, \ldots, w_n) = \prod_{i=1}^{n} P(w_i \mid w_1, \ldots, w_{i-1}),\]
+
+<p>then an $n$-gram model replaces the long history with a fixed window of size $n-1$. That makes estimation tractable, but it also means the model is implicitly assuming distant context has no effect beyond that window.</p>
+
 <h3 id="22-estimating-probabilities">2.2 Estimating Probabilities</h3>
 
 <p><strong>Maximum Likelihood Estimation (MLE)</strong> for a bigram model:</p>
@@ -284,6 +298,8 @@
 \[P(w_i \mid w_{i-1}) = \frac{C(w_{i-1},\, w_i)}{C(w_{i-1})}\]
 
 <p>where $C(\cdot)$ denotes corpus count.</p>
+
+<p>This is the probability that maximizes the log-likelihood of the observed corpus under the empirical counts. For each context word $u$, the conditional distribution over next words is estimated by the relative frequency of each continuation after $u$.</p>
 
 <p><strong>Example:</strong> Given the corpus <code class="language-plaintext highlighter-rouge">"the cat sat on the mat the cat"</code>:</p>
 
@@ -302,6 +318,8 @@ P("cat" | "the") = 2/3 ≈ 0.67
 \[P_{\text{smooth}}(w_i \mid w_{i-1}) = \frac{C(w_{i-1}, w_i) + 1}{C(w_{i-1}) + V}\]
 
 <p>where $V$ is the vocabulary size.</p>
+
+<p>The numerator and denominator both increase so that every token gets non-zero mass, but the price is strong bias toward uniformity. When $V$ is large, add-one smoothing can distort the distribution substantially, which is why stronger discounting methods are preferred.</p>
 
 <p><strong>Kneser-Ney smoothing</strong> is more sophisticated: it considers how many distinct contexts a word appears in, capturing the notion that <em>Francisco</em> is common but almost always follows <em>San</em>, so its standalone continuation probability should be low:</p>
 
@@ -350,6 +368,12 @@ Next: ("hell", "o") → "hello"
 
 <p>After $k$ merges, the vocabulary contains $k$ subword units in addition to individual characters. Common words become single tokens; rare words decompose into familiar subword pieces. GPT-2/3/4 all use BPE with vocabularies of ~50,000 tokens.</p>
 
+<p>Mathematically, the tokenization objective is a trade-off: fewer tokens reduce sequence length and attention cost, while a larger vocabulary reduces fragmentation of frequent words. BPE greedily picks the merge that most reduces corpus description length under the current symbol inventory.</p>
+
+<p>You can think of each merge as replacing a frequent pair $(a,b)$ with a new symbol $ab$ whenever the compression gain is highest. If $f(a,b)$ is the pair frequency, then BPE is approximately choosing the merge that gives the largest drop in total code length under the current segmentation.</p>
+
+<p>The sequence-length effect is immediate: if one tokenizer produces $n$ tokens for a document and another produces $m &lt; n$, then the attention cost changes from $O(n^2)$ to $O(m^2)$. This quadratic dependence is why subword tokenization is not just a linguistic choice but also a systems optimization.</p>
+
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">tokenizers</span> <span class="kn">import</span> <span class="n">Tokenizer</span>
 <span class="kn">from</span> <span class="n">tokenizers.models</span> <span class="kn">import</span> <span class="n">BPE</span>
 <span class="kn">from</span> <span class="n">tokenizers.trainers</span> <span class="kn">import</span> <span class="n">BpeTrainer</span>
@@ -371,6 +395,8 @@ Next: ("hell", "o") → "hello"
 \[\mathcal{L} = \sum_{s \in \mathcal{D}} \log P(s) = \sum_{s \in \mathcal{D}} \log \sum_{\mathbf{x} \in \mathcal{S}(s)} \prod_{i} p(x_i)\]
 
 <p>where $\mathcal{S}(s)$ is the set of all segmentations of sentence $s$ and $p(x_i)$ is the unigram probability of subword $x_i$. Unigram tokenization tends to produce more probabilistically grounded subword splits. It is used in LLaMA, T5, and mT5.</p>
+
+<p>This makes the segmentation itself a latent variable: the model assigns probability to the sentence by summing over every valid tokenization path. During pruning, the algorithm removes pieces whose deletion least harms that marginal likelihood, which is why unigram tokenization is more explicitly probabilistic than BPE.</p>
 
 <hr />
 
@@ -468,11 +494,25 @@ Output layer (softmax over vocabulary)
 
 \[\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V\]
 
+<p>In practice, the matrices come from a sequence representation $X \in \mathbb{R}^{T \times d_{\text{model}}}$ via learned projections:</p>
+
+\[Q = XW^Q, \qquad K = XW^K, \qquad V = XW^V.\]
+
+<p>The score matrix $S = QK^\top / \sqrt{d_k}$ has shape $T \times T$, so each token scores every other token in the context. After the softmax, each row sums to 1, which makes the output a weighted average of value vectors.</p>
+
 <p>The scaling factor $\frac{1}{\sqrt{d_k}}$ prevents the dot products from growing large when $d_k$ is high, which would push softmax into saturation with near-zero gradients.</p>
+
+<p>If the coordinates of $q$ and $k$ are roughly mean-zero with unit variance, then $q \cdot k$ has variance proportional to $d_k$. Dividing by $\sqrt{d_k}$ keeps the logits roughly scale-invariant as the head dimension changes, which stabilizes both the softmax and its gradients.</p>
 
 <p>For a <strong>causal</strong> (decoder-only) language model, a mask $M$ zeroes out future positions:</p>
 
 \[\text{CausalAttention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right) V, \quad M_{ij} = \begin{cases} 0 &amp; i \geq j \\ -\infty &amp; i &lt; j \end{cases}\]
+
+<p>Equivalently, the output for token position $i$ is</p>
+
+\[z_i = \sum_{j=1}^{i} \alpha_{ij} v_j, \qquad \alpha_{ij} = \frac{\exp\left(q_i \cdot k_j / \sqrt{d_k}\right)}{\sum_{m=1}^{i} \exp\left(q_i \cdot k_m / \sqrt{d_k}\right)}.\]
+
+<p>This is just the autoregressive factorization written inside the attention layer: token $i$ may condition on positions $\le i$, but never on future positions $&gt; i$.</p>
 
 <h3 id="62-multi-head-attention">6.2 Multi-Head Attention</h3>
 
@@ -483,6 +523,18 @@ Output layer (softmax over vocabulary)
 \[\text{head}_i = \text{Attention}(Q W_i^Q,\; K W_i^K,\; V W_i^V)\]
 
 <p>where $W_i^Q \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $W_i^K \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $W_i^V \in \mathbb{R}^{d_{\text{model}} \times d_v}$, $W^O \in \mathbb{R}^{h d_v \times d_{\text{model}}}$, and typically $d_k = d_v = d_{\text{model}} / h$.</p>
+
+<p>Splitting the representation into $h$ heads lowers the per-head dot-product dimension and lets the model learn several attention patterns in parallel. A useful mental model is that each head learns a different similarity metric over the same sequence.</p>
+
+<p>For a single head, the attention weights are</p>
+
+\[\alpha_{ij} = \frac{\exp\left(q_i \cdot k_j / \sqrt{d_k}\right)}{\sum_{m} \exp\left(q_i \cdot k_m / \sqrt{d_k}\right)}\]
+
+<p>and the output at position $i$ is</p>
+
+\[z_i = \sum_j \alpha_{ij} v_j.\]
+
+<p>This makes attention a content-addressable weighted average: the query chooses which values to copy, and the softmax turns similarity scores into a probability distribution over positions.</p>
 
 <p>Each head can attend to different aspects of the input — one head might track syntactic agreement, another long-range coreference, another local semantics. This representational diversity is a key reason transformers outperform single-head attention in practice.</p>
 
@@ -502,6 +554,26 @@ Output layer (softmax over vocabulary)
 
 <p>where position $m$ rotates the query by angle $m\theta$ in each 2D subspace of the embedding. The dot product $\langle \text{RoPE}(q, m), \text{RoPE}(k, n) \rangle$ depends only on the relative position $m - n$, making it naturally extrapolate to longer sequences than seen during training.</p>
 
+<p>That relative-position dependence is the key mathematical advantage: the model compares distances between tokens instead of memorizing absolute indices.</p>
+
+<p>In the common pairwise form, each two-dimensional slice is rotated by</p>
+
+\[\begin{bmatrix}
+q'_{2j} \\
+q'_{2j+1}
+\end{bmatrix}
+=
+\begin{bmatrix}
+\cos(m\theta_j) &amp; -\sin(m\theta_j) \\
+\sin(m\theta_j) &amp; \cos(m\theta_j)
+\end{bmatrix}
+\begin{bmatrix}
+q_{2j} \\
+q_{2j+1}
+\end{bmatrix}.\]
+
+<p>The same rotation applies to keys. Because rotations compose, the query-key score after rotation depends on the difference $(m-n)\theta_j$, which is exactly the relative offset between positions.</p>
+
 <h3 id="64-gpt-architecture">6.4 GPT Architecture</h3>
 
 <p>A decoder-only transformer stack with causal attention, pre-layer normalization, and residual connections.</p>
@@ -515,6 +587,22 @@ Output layer (softmax over vocabulary)
 \[P(x_{n+1} \mid x_1, \ldots, x_n) = \text{softmax}(W_e\, \mathbf{h}_L[n])\]
 
 <p>Each transformer block applies (in pre-LN order): layer norm → multi-head causal attention → residual; then layer norm → position-wise FFN → residual. The FFN typically expands the dimension by 4× with a GELU activation.</p>
+
+<p>Written explicitly, a pre-LN block is</p>
+
+\[\tilde{\mathbf{h}}_l = \mathbf{h}_{l-1} + \text{MHA}(\text{LN}(\mathbf{h}_{l-1}))\]
+
+\[\mathbf{h}_l = \tilde{\mathbf{h}}_l + \text{FFN}(\text{LN}(\tilde{\mathbf{h}}_l)).\]
+
+<p>Here $\text{FFN}(x) = W_2\,\sigma(W_1 x + b_1) + b_2$, applied independently to each position.</p>
+
+<p>Layer norm rescales each hidden vector to zero mean and unit variance before the sublayer, while the residual path preserves an identity route for gradients. In practice, that combination is what makes deep transformer stacks train stably.</p>
+
+<p>The final language-model logits are usually computed by projecting the last hidden state back into vocabulary space, often with tied input/output embeddings:</p>
+
+\[\text{logits}_t = \mathbf{h}_L[t] W_E^\top + b,\]
+
+<p>where $W_E$ is the token embedding matrix. Weight tying reduces parameters and keeps the input and output spaces aligned.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">GPTLanguageModel</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">dim_ff</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
@@ -546,7 +634,11 @@ Output layer (softmax over vocabulary)
   <li>Scales to billions of parameters without architectural changes.</li>
 </ol>
 
-<p><strong>Cost:</strong> $O(n^2)$ memory and compute in sequence length, addressed by efficient attention variants (see Part 11).</p>
+<p><strong>Cost:</strong> $O(n^2)$ memory and compute in sequence length, because the attention matrix has one entry for every token pair. Efficient attention variants in Part 11 attack that quadratic term.</p>
+
+<p>More concretely, if sequence length is $T$, head dimension is $d_k$, and there are $h$ heads, then forming $QK^\top$ costs $O(T^2 d_k)$ per head, so the full multi-head attention layer costs $O(h T^2 d_k) = O(T^2 d_{\text{model}})$. The value aggregation step has the same order, and the $T \times T$ mask or attention matrix also consumes quadratic memory if materialized.</p>
+
+<p>That means the dominant bottleneck is token-token interaction, not just parameter count. Doubling the context length roughly quadruples the work and cache footprint, which is why long-context transformers need specialized kernels and memory layouts.</p>
 
 <hr />
 
@@ -557,6 +649,10 @@ Output layer (softmax over vocabulary)
 <p>The standard objective is maximum likelihood — minimize the negative log-likelihood of the training tokens:</p>
 
 \[\mathcal{L}(\theta) = -\frac{1}{N} \sum_{i=1}^{N} \log P_\theta(w_i \mid w_1, \ldots, w_{i-1})\]
+
+<p>Equivalently, this is the average cross-entropy between the empirical next-token distribution and the model distribution. When the target is one-hot, cross-entropy is just the negative log probability assigned to the correct token.</p>
+
+<p>Over a dataset of sequences, the loss decomposes token by token, so optimization is teaching the model to allocate probability mass to the observed continuation at every context.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
     <span class="c1"># logits: [B, T, V],  targets: [B, T]
@@ -573,6 +669,8 @@ Output layer (softmax over vocabulary)
 \[\text{PPL} = \exp\!\left(-\frac{1}{N}\sum_{i=1}^{N} \log P(w_i \mid w_1, \ldots, w_{i-1})\right)\]
 
 <p>A perplexity of $k$ means the model is, on average, as uncertain as if choosing uniformly from $k$ words. Lower is better. Human-level perplexity on typical English text is roughly 10–20.</p>
+
+<p>Because $\text{PPL} = \exp(H)$ for average cross-entropy $H$, it is an exponentiated loss scale rather than a separate objective. A small absolute reduction in cross-entropy can correspond to a meaningful multiplicative improvement in perplexity.</p>
 
 <h3 id="73-teacher-forcing">7.3 Teacher Forcing</h3>
 
@@ -655,7 +753,7 @@ Output layer (softmax over vocabulary)
 <p>Modern language modelling follows a two-stage approach:</p>
 
 <ol>
-  <li><strong>Pre-training:</strong> train on a massive unlabelled corpus (300B+ tokens) to learn a general-purpose representation of language.</li>
+  <li><strong>Pre-training:</strong> train on a massive unlabelled corpus — modern frontier models use 1T–15T+ tokens — to learn a general-purpose representation of language.</li>
   <li><strong>Fine-tuning:</strong> adapt the pre-trained model to a specific task with a much smaller labelled dataset.</li>
 </ol>
 
@@ -686,6 +784,8 @@ Output layer (softmax over vocabulary)
 \[\mathcal{L}_{\text{DPO}}(\theta) = -\mathbb{E}_{(x, y_w, y_l)}\!\left[\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)\right]\]
 
 <p>where $y_w$ is the preferred response, $y_l$ the dispreferred one, $\pi_{\text{ref}}$ is the reference (SFT) policy, and $\beta$ controls deviation from the reference. DPO is simpler to implement, more stable to train, and has become a widely adopted RLHF alternative.</p>
+
+<p>The inner term is a log-odds difference: the model is rewarded when it increases the probability ratio of the winner over the loser relative to the reference policy. In that sense, DPO is learning from pairwise preference margins rather than scalar reward labels.</p>
 
 <h3 id="94-parameter-efficient-fine-tuning">9.4 Parameter-Efficient Fine-tuning</h3>
 
@@ -720,6 +820,8 @@ Output layer (softmax over vocabulary)
 
 <p>where $\alpha_N \approx 0.076$ and $\alpha_D \approx 0.095$ are empirical exponents. Loss decreases predictably and smoothly — there are no discontinuities as models scale.</p>
 
+<p>The important mathematical point is that each term behaves like a power law, so the marginal gain from doubling compute is predictable. On a log-log plot, the curves are close to straight lines, which is why these laws are useful for planning training runs.</p>
+
 <p><strong>Key implication:</strong> given a fixed compute budget $C \approx 6ND$, one can predict ahead of time what loss a model will achieve, without running the experiment.</p>
 
 <h3 id="102-chinchilla-scaling-laws">10.2 Chinchilla Scaling Laws</h3>
@@ -730,14 +832,16 @@ Output layer (softmax over vocabulary)
 
 <p>The Chinchilla model (70B parameters, 1.4T tokens) outperformed Gopher (280B parameters, 300B tokens) at the same compute cost, validating this prescription.</p>
 
+<p>Intuitively, if the model is too large for the available data, optimization becomes data-limited; if the data is too large for the model, capacity becomes the bottleneck. The compute-optimal point balances those two error sources instead of pushing one axis alone.</p>
+
 <h3 id="103-emergent-abilities">10.3 Emergent Abilities</h3>
 
 <p>Beyond smooth scaling, certain capabilities appear abruptly at scale — they are near-zero below a threshold and suddenly usable above it:</p>
 
 <ul>
-  <li><strong>Few-shot learning</strong> emerges around 10B parameters.</li>
+  <li><strong>Few-shot in-context learning</strong> emerged dramatically with GPT-3 (175B parameters, 2020) — smaller models can show weak few-shot behaviour but it is inconsistent.</li>
   <li><strong>Chain-of-thought reasoning</strong> emerges around 100B parameters.</li>
-  <li><strong>Following complex multi-step instructions</strong> requires 100B+ parameters.</li>
+  <li><strong>Following complex multi-step instructions</strong> reliably requires 100B+ parameters and alignment tuning.</li>
 </ul>
 
 <p>This non-linearity means that scaling is not just “more of the same” — qualitatively new behaviour can emerge that was not predictable from smaller-scale experiments.</p>
@@ -760,7 +864,7 @@ Output layer (softmax over vocabulary)
 
 <p>The cost is memory: the KV cache for a 70B-parameter model with a 32k-token context can exceed 160 GB. <strong>Grouped-Query Attention (GQA)</strong> (Ainslie et al., 2023) reduces this by sharing key and value heads across multiple query heads. With $g$ query heads per KV head, cache memory shrinks by $g\times$ with minimal quality degradation. LLaMA-2 and Mistral use GQA.</p>
 
-\[\text{GQA}: \quad K_j = V_j \text{ shared by query heads } \{q_{(j-1)g+1}, \ldots, q_{jg}\}\]
+\[\text{GQA}: \quad (K_j,\, V_j) \text{ shared by query heads } \{q_{(j-1)g+1}, \ldots, q_{jg}\}\]
 
 <p>Multi-Query Attention (MQA) is the extreme case of $g = h$ — a single KV head shared by all query heads.</p>
 
@@ -770,7 +874,7 @@ Output layer (softmax over vocabulary)
 
 \[\text{MoE}(\mathbf{x}) = \sum_{i=1}^{n} G(\mathbf{x})_i \cdot E_i(\mathbf{x})\]
 
-<p>Only the top-$k$ experts (typically $k=2$) are activated per token, so total parameters scale with $n$ but compute per token stays constant. GPT-4 and Mixtral use sparse MoE layers.</p>
+<p>Only the top-$k$ experts (typically $k=2$) are activated per token, so total parameters scale with $n$ but compute per token stays constant. Mixtral 8×7B and Mixtral 8×22B are well-known open MoE models; GPT-4’s architecture has not been officially disclosed but the sparse-MoE hypothesis is widely held.</p>
 
 <p>The gating network $G(\mathbf{x}) = \text{softmax}(\text{TopK}(W_g \mathbf{x}))$ must balance load across experts — without auxiliary loss terms, training collapses to using only a few experts. Switch Transformer (Fedus et al., 2021) introduced an auxiliary load-balancing loss to address this.</p>
 
@@ -805,6 +909,85 @@ A: Roger starts with 5. 2 cans × 3 balls = 6. 5 + 6 = 11.
 
 <p>More recent work — <strong>Self-Consistency</strong> (Wang et al., 2022) — generates multiple CoT paths and takes a majority vote over final answers, further improving accuracy on multi-step problems.</p>
 
+<p>By 2026, many production systems go beyond visible CoT prompting and use hidden scratchpads, verifier-guided decoding, tool calls, and multi-step planning at test time. The practical lesson is the same: giving the model more room to deliberate usually beats forcing a single-shot answer.</p>
+
+<h3 id="116-agents-and-tool-use">11.6 Agents and Tool Use</h3>
+
+<p>Modern language models are often used as policies over actions, not just next-token predictors. At each step the model chooses between emitting text, calling a tool, or delegating to an external system:</p>
+
+\[a_t \sim \pi_\theta(\cdot \mid s_t),\]
+
+<p>where $s_t$ is the current state consisting of the prompt, the conversation history, retrieved context, and any intermediate tool outputs. In agentic setups, the objective is no longer just language likelihood, but expected task success over a rollout:</p>
+
+\[J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\!\left[\sum_{t=1}^{T} \gamma^{t-1} r_t\right].\]
+
+<p>This is why tool-use systems matter: search, code execution, calculators, and APIs let the model offload exact or up-to-date work instead of approximating everything in parameters. In practice, a good agent needs three ingredients: action schema, stop/continue control, and feedback from tool results.</p>
+
+<h3 id="117-multimodal-and-long-context-models">11.7 Multimodal and Long-Context Models</h3>
+
+<p>Current foundation models increasingly operate on mixed inputs: text, images, audio, and sometimes video. A simple way to write this is to encode each modality into a shared latent space and then concatenate the resulting token streams:</p>
+
+\[X = [X^{(\text{text})}; X^{(\text{image})}; X^{(\text{audio})}] , \qquad H^{(m)} = f_m(X^{(m)}) W_m.\]
+
+<p>Here $f_m$ is a modality-specific encoder and $W_m$ maps each modality into the common transformer width $d_{\text{model}}$. For images, $f_m$ is often a patch encoder; for audio, it is often a spectrogram encoder; for video, a time-aware visual encoder.</p>
+
+<p>Long-context systems push the sequence length far beyond the original 2k–8k token regime, but the math still matters: standard attention scales as $O(T^2)$ in sequence length, so long-context models rely on a mix of RoPE scaling, sliding windows, retrieval, and memory compression. The practical lesson is that context is now a resource to manage, not just a bigger input box to fill.</p>
+
+<h3 id="118-inference-and-serving-optimization">11.8 Inference and Serving Optimization</h3>
+
+<p><strong>Speculative decoding</strong> (Leviathan et al., 2023) exploits the fact that a small draft model is much cheaper to run than a large target model. The draft proposes $\gamma$ tokens in one pass; the target verifier then checks all $\gamma$ tokens in a single parallel forward pass. Tokens are accepted greedily up to the first mismatch, and a corrected token is sampled at the rejection point. Because the verifier runs $\gamma$ tokens in parallel instead of serially, each target forward pass advances the sequence by $&gt; 1$ token on average with no change to output distribution.</p>
+
+<p>The expected speedup depends on the acceptance rate $\alpha$ (fraction of draft tokens accepted). If the draft model is a good approximation of the target, $\alpha \approx 0.7$–$0.9$ and the speedup is roughly $\frac{1}{1 - \alpha^{\gamma}}$ — often 2–3× on practical workloads.</p>
+
+<p><strong>Quantization</strong> reduces the memory footprint and memory-bandwidth cost of inference by representing weights in fewer bits. The key identity is:</p>
+
+\[\text{memory} \propto |\theta| \times b,\]
+
+<table>
+  <tbody>
+    <tr>
+      <td>where $</td>
+      <td>\theta</td>
+      <td>$ is parameter count and $b$ is bits per weight. Common schemes:</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li><strong>INT8 / W8A8</strong>: weights and activations both at 8 bits. Near-lossless on most tasks; supported natively by modern GPU tensor cores.</li>
+  <li><strong>GPTQ / AWQ (W4A16)</strong>: 4-bit weights, 16-bit activations. Requires post-training calibration. Widely used for local inference (e.g., llama.cpp / GGUF format).</li>
+  <li><strong>NF4</strong>: a 4-bit data type with values spaced according to the quantile function of a standard normal, used in QLoRA to fine-tune quantized models.</li>
+</ul>
+
+<p>Moving from FP16 to INT4 roughly quarters weight memory and bandwidth, enabling a 70B model to fit on a single 40 GB GPU with acceptable quality on most generation tasks.</p>
+
+<p><strong>Continuous batching</strong> (also called iteration-level scheduling) processes heterogeneous requests at the individual iteration level rather than at the request level. When one sequence in a batch finishes early, that slot is immediately reassigned to a new request, keeping GPU utilisation high even when request lengths vary widely.</p>
+
+<p>Serving systems also use <strong>prefix caching</strong>: if many requests share a common system prompt or retrieval context, the KV cache for that prefix is computed once and reused across requests, amortizing both compute and memory.</p>
+
+<h3 id="119-model-safety-and-alignment">11.9 Model Safety and Alignment</h3>
+
+<p>Modern language models are not judged only by accuracy; they are also judged by whether they remain helpful, calibrated, and robust under adversarial or ambiguous prompts. In practice, <strong>alignment</strong> means shaping the model policy so that high-probability outputs are useful and safe rather than merely likely under the raw pre-training distribution.</p>
+
+<p>One way to write the post-training objective is as a constrained optimization problem:</p>
+
+\[\max_{\pi} \; \mathbb{E}_{x \sim \mathcal{D},\; y \sim \pi(\cdot \mid x)}[R(x,y)] \qquad \text{subject to} \qquad D(\pi \| \pi_{\text{ref}}) \leq \delta,\]
+
+<p>where $R(x,y)$ is a learned or implicit notion of response quality, $\pi_{\text{ref}}$ is a reference model, and the divergence constraint prevents the aligned model from drifting too far from the base model. RLHF, DPO, and related preference-optimization methods can all be viewed as practical approximations to this objective.</p>
+
+<p>Safety also involves <strong>refusal behavior</strong>: the model should decline harmful or disallowed requests while still helping on benign ones. This is a selective classification problem. Ideally, the model estimates when answering is appropriate and when it should abstain:</p>
+
+\[\hat{y} = \begin{cases}
+f_\theta(x) &amp; \text{if } c_\theta(x) \geq \tau \\
+\text{refuse} &amp; \text{otherwise}
+\end{cases}\]
+
+<p>where $c_\theta(x)$ is a confidence or safety score and $\tau$ is a refusal threshold. In real systems, that score is often implicit and implemented through system prompts, safety classifiers, or a combination of policy and moderation models.</p>
+
+<p>Another important issue is <strong>jailbreak robustness</strong>. A jailbreak attempts to alter the effective objective of the model by wrapping a harmful request in adversarial context, role-play, translation, or prompt injection. From a security point of view, prompt injection is best understood as untrusted input competing with trusted instructions inside the same context window. Tool-using agents make this more serious because malicious content can affect not only text output but also actions.</p>
+
+<p>By 2026, safety engineering is therefore a stack, not a single technique: aligned post-training, refusal tuning, input/output classifiers, tool permissions, sandboxing, and continuous red-teaming. The core lesson is that capability scaling without control scaling is not enough.</p>
+
 <hr />
 
 <h2 id="part-12-evaluation">Part 12: Evaluation</h2>
@@ -823,13 +1006,15 @@ A: Roger starts with 5. 2 cans × 3 balls = 6. 5 + 6 = 11.
 
 <p><strong>GLUE / SuperGLUE</strong> — nine tasks covering sentiment analysis, paraphrase detection, natural language inference, and more. SuperGLUE is the harder successor, on which humans score ~89%.</p>
 
-<p><strong>MMLU (Massive Multitask Language Understanding)</strong> — 57 tasks spanning STEM, humanities, social sciences, and professional domains. GPT-4 scores ~86% vs. human expert ~90%.</p>
+<p><strong>MMLU and MMLU-Pro</strong> — MMLU is now largely saturated for frontier systems, so MMLU-Pro and related harder variants are more informative for current models. Broad academic knowledge alone is no longer enough to separate the best systems.</p>
+
+<p><strong>GPQA, MMMU, and SWE-bench</strong> — stronger current benchmarks for graduate-level science reasoning, multimodal understanding, and real software engineering tasks.</p>
 
 <p><strong>BIG-bench</strong> — 200+ tasks probing reasoning, creativity, and emergent behaviour not covered by standard benchmarks.</p>
 
 <p><strong>HumanEval</strong> — coding benchmark: generate Python functions from docstrings. Measures functional correctness by running unit tests.</p>
 
-<p><strong>GSM8K / MATH</strong> — grade-school and competition-level mathematics. A key benchmark for chain-of-thought and reasoning capabilities.</p>
+<p><strong>GSM8K / MATH</strong> — grade-school and competition-level mathematics. Still useful, but increasingly complemented by harder reasoning suites and agentic coding tasks.</p>
 
 <hr />
 
@@ -857,7 +1042,13 @@ A: Roger starts with 5. 2 cans × 3 balls = 6. 5 + 6 = 11.
 
 <p><strong>Emergent abilities</strong> — qualitatively new capabilities appear abruptly at scale.</p>
 
-<p><strong>Modern techniques</strong> — Flash Attention, GQA/KV cache, MoE, RAG, and chain-of-thought push the efficiency and capability frontier.</p>
+<p><strong>Modern techniques</strong> — Flash Attention, GQA/KV cache, MoE, RAG, and test-time reasoning push the efficiency and capability frontier.</p>
+
+<p><strong>Agents, multimodality, and serving</strong> — tool use turns models into action policies, multimodal encoders fuse text with images/audio/video, and long-context serving now depends on speculative decoding, quantization, and batching.</p>
+
+<p><strong>Safety and alignment</strong> — modern LMs are trained not only to be capable but also to refuse harmful requests, remain robust under jailbreaks, and stay close to aligned reference behavior during post-training.</p>
+
+<p><strong>2026 reality check</strong> — the practical stack now also includes speculative decoding, quantization, continuous batching, and tool-using agents, because raw model quality is only half the story.</p>
 
 <hr />
 
@@ -914,6 +1105,12 @@ A: Roger starts with 5. 2 cans × 3 balls = 6. 5 + 6 = 11.
   </li>
   <li>
     <p>Fedus, William, Barret Zoph, and Noam Shazeer. “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity.” <em>Journal of Machine Learning Research</em> 23, no. 120 (2022): 1–39.</p>
+  </li>
+  <li>
+    <p>Leviathan, Yaniv, Matan Kalman, and Yossi Matias. “Fast Inference from Transformers via Speculative Decoding.” In <em>International Conference on Machine Learning</em>, pp. 19274–19286. PMLR, 2023.</p>
+  </li>
+  <li>
+    <p>Dettmers, Tim, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer. “QLoRA: Efficient Finetuning of Quantized LLMs.” In <em>Advances in Neural Information Processing Systems</em>, vol. 36. Curran Associates, 2023.</p>
   </li>
 </ol>
 
